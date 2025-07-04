@@ -1,9 +1,10 @@
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import { Box, Button, Chip, Divider, Stack, Typography, useTheme } from "@mui/material";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { Box, Button, Chip, Divider, Stack, Typography, useTheme, Container } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
-import { Autoplay } from "swiper";
+import { Autoplay, EffectFade, Navigation } from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { toast } from "react-toastify";
 
@@ -33,7 +34,7 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
         page: 1
       });
 
-      if (response) setMovies(response.results);
+      if (response) setMovies(response.results.slice(0, 5));
       if (err) toast.error(err.message);
       dispatch(setGlobalLoading(false));
     };
@@ -59,6 +60,9 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
     <Box sx={{
       position: "relative",
       color: "primary.contrastText",
+      width: "100vw",
+      marginLeft: "calc(-50vw + 50%)",
+      marginRight: "calc(-50vw + 50%)",
       "&::before": {
         content: '""',
         width: "100%",
@@ -74,12 +78,14 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
       <Swiper
         grabCursor={true}
         loop={true}
-        // modules={[Autoplay]}
+        modules={[Autoplay, EffectFade, Navigation]}
         style={{ width: "100%", height: "max-content" }}
-      // autoplay={{
-      //   delay: 3000,
-      //   disableOnInteraction: false
-      // }}
+        autoplay={{
+          delay: 4000,
+          disableOnInteraction: false
+        }}
+        effect="fade"
+        navigation
       >
         {movies.map((movie, index) => (
           <SwiperSlide key={index}>
@@ -92,86 +98,160 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
               },
               backgroundPosition: "top",
               backgroundSize: "cover",
-              backgroundImage: `url(${tmdbConfigs.backdropPath(movie.backdrop_path || movie.poster_path)})`
-            }} />
-            <Box sx={{
-              width: "100%",
-              height: "100%",
-              position: "absolute",
-              top: 0,
-              left: 0,
-              ...uiConfigs.style.horizontalGradientBgImage[theme.palette.mode]
-            }} />
-            <Box sx={{
-              width: "100%",
-              height: "100%",
-              position: "absolute",
-              top: 0,
-              left: 0,
-              paddingX: { sm: "10px", md: "5rem", lg: "10rem" }
+              backgroundImage: `url(${tmdbConfigs.backdropPath(movie.backdrop_path || movie.poster_path)})`,
+              position: "relative"
             }}>
+              {/* Overlay gradient */}
               <Box sx={{
+                width: "100%",
                 height: "100%",
+                position: "absolute",
+                top: 0,
+                left: 0,
+                ...uiConfigs.style.horizontalGradientBgImage[theme.palette.mode]
+              }} />
+              
+              {/* Content */}
+              <Container maxWidth="xl" sx={{
+                width: "100%",
+                height: "100%",
+                position: "absolute",
+                top: 0,
+                left: "50%",
+                transform: "translateX(-50%)",
                 display: "flex",
                 alignItems: "center",
-                paddingX: "30px",
-                color: "text.primary",
-                width: { sm: "unset", md: "30%", lg: "40%" }
+                justifyContent: { xs: "center", md: "flex-start" },
+                paddingX: { xs: 4, sm: 8, md: 6, lg: 8 }
               }}>
-                <Stack spacing={4} direction="column">
-                  {/* title */}
-                  <Typography
-                    variant="h4"
-                    fontSize={{ xs: "2rem", md: "2rem", lg: "4rem" }}
-                    fontWeight="700"
-                    sx={{
-                      ...uiConfigs.style.typoLines(2, "left")
-                    }}
-                  >
-                    {movie.title || movie.name}
-                  </Typography>
-                  {/* title */}
-
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    {/* rating */}
-                    <CircularRate value={movie.vote_average} />
-                    {/* rating */}
-
-                    <Divider orientation="vertical" />
-                    {/* genres */}
-                    {[...movie.genre_ids].splice(0, 2).map((genreId, index) => (
+                <Box sx={{
+                  width: { xs: "100%", sm: "80%", md: "50%", lg: "40%" },
+                  textAlign: { xs: "center", md: "left" }
+                }}>
+                  <Stack spacing={{ xs: 2, md: 4 }} direction="column">
+                    {/* Title */}
+                    <Typography
+                      variant="h2"
+                      fontSize={{ xs: "2rem", sm: "3rem", md: "3.5rem", lg: "4.5rem" }}
+                      fontWeight="700"
+                      sx={{
+                        ...uiConfigs.style.typoLines(2, { xs: "center", md: "left" }),
+                        textShadow: "0 2px 5px rgba(0,0,0,0.3)",
+                        fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
+                      }}
+                    >
+                      {movie.title || movie.name}
+                    </Typography>
+                    
+                    {/* Info */}
+                    <Stack direction="row" spacing={2} alignItems="center" justifyContent={{ xs: "center", md: "flex-start" }}>
+                      {/* Rating */}
+                      <CircularRate value={movie.vote_average} />
+                      
+                      <Divider orientation="vertical" flexItem sx={{ height: 24 }}/>
+                      
+                      {/* Year */}
+                      <Typography variant="body1" fontWeight={500}>
+                        {(movie.release_date || movie.first_air_date || "").split("-")[0]}
+                      </Typography>
+                      
+                      <Divider orientation="vertical" flexItem sx={{ height: 24 }}/>
+                      
+                      {/* Media type */}
                       <Chip
-                        variant="filled"
-                        color="primary"
-                        key={index}
-                        label={genres.find(e => e.id === genreId) && genres.find(e => e.id === genreId).name}
+                        variant="outlined"
+                        label={mediaType === tmdbConfigs.mediaType.movie ? "Phim lẻ" : "Phim bộ"}
+                        size="small"
+                        sx={{ 
+                          borderColor: "text.primary",
+                          color: "text.primary",
+                          fontWeight: 500
+                        }}
                       />
-                    ))}
-                    {/* genres */}
+                    </Stack>
+
+                    {/* Genres */}
+                    <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent={{ xs: "center", md: "flex-start" }}>
+                      {[...movie.genre_ids].splice(0, 3).map((genreId, index) => {
+                        const genre = genres.find(e => e.id === genreId);
+                        if (!genre) return null;
+                        return (
+                          <Chip
+                            key={index}
+                            variant="filled"
+                            color="primary"
+                            label={genre.name}
+                            sx={{ 
+                              marginBottom: 1,
+                              fontWeight: 500,
+                              fontSize: "0.85rem"
+                            }}
+                          />
+                        );
+                      })}
+                    </Stack>
+
+                    {/* Overview */}
+                    <Typography 
+                      variant="body1" 
+                      sx={{
+                        ...uiConfigs.style.typoLines(3, { xs: "center", md: "left" }),
+                        fontSize: { xs: "0.9rem", sm: "1rem" },
+                        opacity: 0.9,
+                        fontFamily: '"SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif',
+                      }}
+                    >
+                      {movie.overview}
+                    </Typography>
+
+                    {/* Buttons */}
+                    <Stack 
+                      direction="row" 
+                      spacing={2}
+                      justifyContent={{ xs: "center", md: "flex-start" }}
+                    >
+                      <Button
+                        variant="contained"
+                        size="large"
+                        startIcon={<PlayArrowIcon />}
+                        component={Link}
+                        to={routesGen.mediaDetail(mediaType, movie.id)}
+                        sx={{ 
+                          px: 4,
+                          py: 1,
+                          fontWeight: 600,
+                          fontSize: "1rem",
+                          borderRadius: 2
+                        }}
+                      >
+                        Xem ngay
+                      </Button>
+                      
+                      <Button
+                        variant="outlined"
+                        size="large"
+                        startIcon={<InfoOutlinedIcon />}
+                        component={Link}
+                        to={routesGen.mediaDetail(mediaType, movie.id)}
+                        sx={{ 
+                          px: 3,
+                          py: 1,
+                          fontWeight: 600,
+                          fontSize: "1rem",
+                          borderRadius: 2,
+                          backgroundColor: 'rgba(255,255,255,0.1)',
+                          backdropFilter: 'blur(10px)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                          }
+                        }}
+                      >
+                        Chi tiết
+                      </Button>
+                    </Stack>
                   </Stack>
-
-                  {/* overview */}
-                  <Typography variant="body1" sx={{
-                    ...uiConfigs.style.typoLines(3)
-                  }}>
-                    {movie.overview}
-                  </Typography>
-                  {/* overview */}
-
-                  {/* buttons */}
-                  <Button
-                    variant="contained"
-                    size="large"
-                    startIcon={<PlayArrowIcon />}
-                    component={Link}
-                    to={routesGen.mediaDetail(mediaType, movie.id)}
-                    sx={{ width: "max-content" }}
-                  >
-                    watch now
-                  </Button>
-                  {/* buttons */}
-                </Stack>
-              </Box>
+                </Box>
+              </Container>
             </Box>
           </SwiperSlide>
         ))}
