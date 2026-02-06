@@ -1,16 +1,15 @@
-{
-    "version": 2,
-    "buildCommand": "cd client && CI=false npm run build",
-    "outputDirectory": "client/build",
-    "rewrites": [
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
-        }
-    ],
-    "functions": {
-        "api/**/*.js": {
-            "maxDuration": 10
-        }
+"version": 2,
+"buildCommand": "CI=false npm run build",
+"outputDirectory": "build",
+"rewrites": [
+    {
+        "source": "/(.*)",
+        "destination": "/index.html"
     }
+],
+"functions": {
+    "api/**/*.js": {
+        "maxDuration": 10
+    }
+}
 }
