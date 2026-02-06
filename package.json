@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "scripts": {
     "dev": "npm --prefix client run start",
     "dev:server": "npm --prefix server run start",
