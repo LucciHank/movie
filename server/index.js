@@ -15,6 +15,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+app.get("/api/v1/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    env: {
+      tmdbBaseUrl: !!process.env.TMDB_BASE_URL,
+      tmdbKey: !!process.env.TMDB_KEY,
+      supabaseUrl: !!process.env.SUPABASE_URL,
+      supabaseKey: !!process.env.SUPABASE_ANON_KEY,
+      port: process.env.PORT
+    }
+  });
+});
+
 app.use("/api/v1", routes);
 
 const port = process.env.PORT || 5000;
