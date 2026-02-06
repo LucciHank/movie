@@ -1,7 +1,8 @@
 import { Avatar } from "@mui/material";
 
-const TextAvatar = ({ text }) => {
+const TextAvatar = ({ text = "User" }) => {
   const stringToColor = (str) => {
+    if (!str) return "#000000"; // Return default color if str is invalid
     let hash = 0;
     let i;
 
