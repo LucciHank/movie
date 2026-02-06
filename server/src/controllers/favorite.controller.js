@@ -1,24 +1,44 @@
+import supabase from "../supabase.js";
 import responseHandler from "../handlers/response.handler.js";
-import favoriteModel from "../models/favorite.model.js";
 
 const addFavorite = async (req, res) => {
   try {
-    const isFavorite = await favoriteModel.findOne({
-      user: req.user.id,
-      mediaId: req.body.mediaId
-    });
+    const { mediaId, mediaType, mediaTitle, mediaPoster, mediaRate } = req.body;
 
-    if (isFavorite) return responseHandler.ok(res, isFavorite);
+    // Check if already favorite
+    const { data: existing } = await supabase
+      .from('favorites')
+      .select('id')
+      .eq('user_id', req.user.id)
+      .eq('media_id', mediaId)
+      .single();
 
-    const favorite = new favoriteModel({
-      ...req.body,
-      user: req.user.id
-    });
+    if (existing) {
+      return responseHandler.ok(res, existing);
+    }
 
-    await favorite.save();
+    // Add favorite
+    const { data: favorite, error } = await supabase
+      .from('favorites')
+      .insert({
+        user_id: req.user.id,
+        media_id: mediaId,
+        media_type: mediaType,
+        media_title: mediaTitle,
+        media_poster: mediaPoster,
+        media_rate: mediaRate
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Add favorite error:", error);
+      return responseHandler.error(res);
+    }
 
     responseHandler.created(res, favorite);
-  } catch {
+  } catch (err) {
+    console.error("Add favorite error:", err);
     responseHandler.error(res);
   }
 };
@@ -27,14 +47,15 @@ const removeFavorite = async (req, res) => {
   try {
     const { favoriteId } = req.params;
 
-    const favorite = await favoriteModel.findOne({
-      user: req.user.id,
-      _id: favoriteId
-    });
+    const { error } = await supabase
+      .from('favorites')
+      .delete()
+      .eq('id', favoriteId)
+      .eq('user_id', req.user.id);
 
-    if (!favorite) return responseHandler.notfound(res);
-
-    await favorite.remove();
+    if (error) {
+      return responseHandler.notfound(res);
+    }
 
     responseHandler.ok(res);
   } catch {
@@ -44,9 +65,17 @@ const removeFavorite = async (req, res) => {
 
 const getFavoritesOfUser = async (req, res) => {
   try {
-    const favorite = await favoriteModel.find({ user: req.user.id }).sort("-createdAt");
+    const { data: favorites, error } = await supabase
+      .from('favorites')
+      .select('*')
+      .eq('user_id', req.user.id)
+      .order('created_at', { ascending: false });
 
-    responseHandler.ok(res, favorite);
+    if (error) {
+      return responseHandler.error(res);
+    }
+
+    responseHandler.ok(res, favorites);
   } catch {
     responseHandler.error(res);
   }

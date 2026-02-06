@@ -1,6 +1,6 @@
 import jsonwebtoken from "jsonwebtoken";
 import responseHandler from "../handlers/response.handler.js";
-import userModel from "../models/user.model.js";
+import supabase from "../supabase.js";
 
 const tokenDecode = (req) => {
   try {
@@ -26,11 +26,19 @@ const auth = async (req, res, next) => {
 
   if (!tokenDecoded) return responseHandler.unauthorize(res);
 
-  const user = await userModel.findById(tokenDecoded.data);
+  const { data: user, error } = await supabase
+    .from('users')
+    .select('id, username, display_name')
+    .eq('id', tokenDecoded.data)
+    .single();
 
-  if (!user) return responseHandler.unauthorize(res);
+  if (error || !user) return responseHandler.unauthorize(res);
 
-  req.user = user;
+  req.user = {
+    id: user.id,
+    username: user.username,
+    displayName: user.display_name
+  };
 
   next();
 };

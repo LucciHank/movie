@@ -31,6 +31,12 @@ const tmdbEndpoints = {
   personMedias: ({ personId }) => tmdbConfig.getUrl(
     `person/${personId}/combined_credits`
   ),
+  personPopular: ({ page }) => tmdbConfig.getUrl(
+    `person/popular`, { page }
+  ),
+  personSearch: ({ query, page }) => tmdbConfig.getUrl(
+    `search/person`, { query, page }
+  ),
 };
 
 export default tmdbEndpoints;

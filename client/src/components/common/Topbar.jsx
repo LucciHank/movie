@@ -78,7 +78,7 @@ const Topbar = () => {
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-    
+
     if (query.length >= 2) {
       performSearch(query);
     } else {
@@ -92,7 +92,7 @@ const Topbar = () => {
 
   const performSearch = async (query) => {
     setIsSearching(true);
-    
+
     try {
       // Search movies
       const movieResponse = await mediaApi.search({
@@ -100,20 +100,20 @@ const Topbar = () => {
         query,
         page: 1
       });
-      
+
       // Search TV shows
       const tvResponse = await mediaApi.search({
         mediaType: tmdbConfigs.mediaType.tv,
         query,
         page: 1
       });
-      
+
       // Search people
       const personResponse = await personApi.search({
         query,
         page: 1
       });
-      
+
       setSearchResults({
         movies: movieResponse.response ? movieResponse.response.results.slice(0, 3) : [],
         tvShows: tvResponse.response ? tvResponse.response.results.slice(0, 3) : [],
@@ -122,7 +122,7 @@ const Topbar = () => {
     } catch (error) {
       console.error("Search error:", error);
     }
-    
+
     setIsSearching(false);
   };
 
@@ -142,7 +142,7 @@ const Topbar = () => {
   const handleItemClick = (type, id) => {
     setSearchFocused(false);
     setSearchQuery("");
-    
+
     if (type === "person") {
       navigate(routesGen.person(id));
     } else {
@@ -150,18 +150,18 @@ const Topbar = () => {
     }
   };
 
-  const hasResults = searchResults.movies.length > 0 || 
-                     searchResults.tvShows.length > 0 || 
-                     searchResults.people.length > 0;
+  const hasResults = searchResults.movies.length > 0 ||
+    searchResults.tvShows.length > 0 ||
+    searchResults.people.length > 0;
 
   return (
     <>
       <Sidebar open={sidebarOpen} toggleSidebar={toggleSidebar} />
       <ScrollAppBar>
-        <AppBar 
-          elevation={0} 
-          sx={{ 
-            zIndex: 9999, 
+        <AppBar
+          elevation={0}
+          sx={{
+            zIndex: 9999,
             borderRadius: 0,
             '& .MuiPaper-root': {
               borderRadius: 0
@@ -169,7 +169,7 @@ const Topbar = () => {
           }}
         >
           <Container maxWidth="xl">
-            <Toolbar disableGutters sx={{ 
+            <Toolbar disableGutters sx={{
               minHeight: { xs: '64px', sm: '70px' },
               justifyContent: "space-between",
               px: 2
@@ -184,52 +184,54 @@ const Topbar = () => {
               </IconButton>
 
               {/* Logo */}
-              <Box sx={{ 
-                display: "flex", 
+              <Box sx={{
+                display: "flex",
                 alignItems: "center",
                 mr: { md: 4 }
               }}>
                 <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
-                <Logo />
+                  <Logo />
                 </Link>
               </Box>
 
               {/* Main menu - Desktop */}
-              <Stack 
-                direction="row" 
-                spacing={1} 
-                alignItems="center" 
-                sx={{ 
+              <Stack
+                direction="row"
+                spacing={0.5}
+                alignItems="center"
+                sx={{
                   display: { xs: "none", md: "flex" },
-                  flexGrow: 1
+                  flexGrow: 1,
+                  flexWrap: 'nowrap'
                 }}
               >
-              {menuConfigs.main.map((item, index) => (
-                <Button
-                  key={index}
-                  sx={{
-                    color: appState.includes(item.state) ? "primary.contrastText" : "inherit",
-                      mr: 1,
-                      px: 1.5,
+                {menuConfigs.main.map((item, index) => (
+                  <Button
+                    key={index}
+                    sx={{
+                      color: appState.includes(item.state) ? "primary.contrastText" : "inherit",
+                      px: { md: 1, lg: 1.5 },
                       fontWeight: 500,
                       textTransform: "none",
-                      fontSize: "0.95rem"
-                  }}
-                  component={Link}
-                  to={item.path}
-                  variant={appState.includes(item.state) ? "contained" : "text"}
-                >
-                  {item.display}
-                </Button>
-              ))}
+                      fontSize: { md: '0.85rem', lg: '0.95rem' },
+                      whiteSpace: 'nowrap',
+                      minWidth: 'auto'
+                    }}
+                    component={Link}
+                    to={item.path}
+                    variant={appState.includes(item.state) ? "contained" : "text"}
+                  >
+                    {item.display}
+                  </Button>
+                ))}
               </Stack>
 
               {/* Search Bar */}
-              <Box 
+              <Box
                 ref={searchRef}
-                component="form" 
+                component="form"
                 onSubmit={handleSearchSubmit}
-                sx={{ 
+                sx={{
                   position: 'relative',
                   display: "flex",
                   alignItems: "center",
@@ -251,7 +253,7 @@ const Topbar = () => {
                   value={searchQuery}
                   onChange={handleSearchChange}
                   onFocus={() => setSearchFocused(true)}
-                  sx={{ 
+                  sx={{
                     color: 'inherit',
                     '& .MuiInputBase-input': {
                       p: '8px 0',
@@ -263,9 +265,9 @@ const Topbar = () => {
                     flexGrow: 1
                   }}
                 />
-                <IconButton 
+                <IconButton
                   type="submit"
-                  sx={{ 
+                  sx={{
                     p: '5px',
                     color: 'inherit',
                     ml: 1,
@@ -274,8 +276,8 @@ const Topbar = () => {
                   }}
                 >
                   <SearchIcon />
-              </IconButton>
-                
+                </IconButton>
+
                 {/* Search Results Dropdown */}
                 {searchFocused && searchQuery.length >= 2 && (
                   <Paper
@@ -309,7 +311,7 @@ const Topbar = () => {
                         <Typography variant="body2" color="text.secondary">
                           Không tìm thấy kết quả
                         </Typography>
-            </Box>
+                      </Box>
                     ) : (
                       <>
                         {searchResults.movies.length > 0 && (
@@ -319,13 +321,13 @@ const Topbar = () => {
                             </Typography>
                             <Divider />
                             {searchResults.movies.map(movie => (
-                              <MenuItem 
+                              <MenuItem
                                 key={movie.id}
                                 onClick={() => handleItemClick(tmdbConfigs.mediaType.movie, movie.id)}
                                 sx={{ py: 1.5 }}
                               >
                                 <ListItemAvatar>
-                                  <Avatar 
+                                  <Avatar
                                     variant="rounded"
                                     src={movie.poster_path ? tmdbConfigs.posterPath(movie.poster_path) : ''}
                                     alt={movie.title}
@@ -334,8 +336,8 @@ const Topbar = () => {
                                     <MovieIcon />
                                   </Avatar>
                                 </ListItemAvatar>
-                                <ListItemText 
-                                  primary={movie.title} 
+                                <ListItemText
+                                  primary={movie.title}
                                   secondary={movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
                                   primaryTypographyProps={{
                                     noWrap: true,
@@ -346,7 +348,7 @@ const Topbar = () => {
                             ))}
                           </>
                         )}
-                        
+
                         {searchResults.tvShows.length > 0 && (
                           <>
                             <Typography variant="subtitle2" sx={{ px: 2, py: 1, backgroundColor: 'background.paper' }}>
@@ -354,13 +356,13 @@ const Topbar = () => {
                             </Typography>
                             <Divider />
                             {searchResults.tvShows.map(show => (
-                              <MenuItem 
+                              <MenuItem
                                 key={show.id}
                                 onClick={() => handleItemClick(tmdbConfigs.mediaType.tv, show.id)}
                                 sx={{ py: 1.5 }}
                               >
                                 <ListItemAvatar>
-                                  <Avatar 
+                                  <Avatar
                                     variant="rounded"
                                     src={show.poster_path ? tmdbConfigs.posterPath(show.poster_path) : ''}
                                     alt={show.name}
@@ -369,8 +371,8 @@ const Topbar = () => {
                                     <TvIcon />
                                   </Avatar>
                                 </ListItemAvatar>
-                                <ListItemText 
-                                  primary={show.name} 
+                                <ListItemText
+                                  primary={show.name}
                                   secondary={show.first_air_date ? new Date(show.first_air_date).getFullYear() : 'N/A'}
                                   primaryTypographyProps={{
                                     noWrap: true,
@@ -381,7 +383,7 @@ const Topbar = () => {
                             ))}
                           </>
                         )}
-                        
+
                         {searchResults.people.length > 0 && (
                           <>
                             <Typography variant="subtitle2" sx={{ px: 2, py: 1, backgroundColor: 'background.paper' }}>
@@ -389,21 +391,21 @@ const Topbar = () => {
                             </Typography>
                             <Divider />
                             {searchResults.people.map(person => (
-                              <MenuItem 
+                              <MenuItem
                                 key={person.id}
                                 onClick={() => handleItemClick("person", person.id)}
                                 sx={{ py: 1.5 }}
                               >
                                 <ListItemAvatar>
-                                  <Avatar 
+                                  <Avatar
                                     src={person.profile_path ? tmdbConfigs.posterPath(person.profile_path) : ''}
                                     alt={person.name}
                                   >
                                     <PersonIcon />
                                   </Avatar>
                                 </ListItemAvatar>
-                                <ListItemText 
-                                  primary={person.name} 
+                                <ListItemText
+                                  primary={person.name}
                                   secondary={person.known_for_department || 'Diễn viên'}
                                   primaryTypographyProps={{
                                     noWrap: true,
@@ -414,10 +416,10 @@ const Topbar = () => {
                             ))}
                           </>
                         )}
-                        
+
                         <Box sx={{ p: 1, textAlign: 'center' }}>
-                          <Button 
-                            size="small" 
+                          <Button
+                            size="small"
                             onClick={handleSearchSubmit}
                             endIcon={<ArrowForwardIcon />}
                           >
@@ -441,9 +443,9 @@ const Topbar = () => {
 
                 {!user ? (
                   <Button
-                variant="contained"
-                onClick={() => dispatch(setAuthModalOpen(true))}
-                    sx={{ 
+                    variant="contained"
+                    onClick={() => dispatch(setAuthModalOpen(true))}
+                    sx={{
                       display: { xs: 'none', sm: 'flex' },
                       borderRadius: 1,
                       px: 2
@@ -454,8 +456,8 @@ const Topbar = () => {
                 ) : (
                   <UserMenu />
                 )}
-            </Stack>
-          </Toolbar>
+              </Stack>
+            </Toolbar>
           </Container>
         </AppBar>
       </ScrollAppBar>

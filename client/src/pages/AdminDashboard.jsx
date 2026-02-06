@@ -31,6 +31,7 @@ import tmdbConfigs from '../api/configs/tmdb.configs';
 import mediaApi from '../api/modules/media.api';
 import genreApi from '../api/modules/genre.api';
 import userApi from '../api/modules/user.api';
+import analyticsApi from '../api/modules/analytics.api';
 import { setGlobalLoading } from '../redux/features/globalLoadingSlice';
 import uiConfigs from '../configs/ui.configs';
 import Container from '../components/common/Container';
@@ -40,10 +41,10 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.user);
   const theme = useTheme();
-  
+
   const [tabValue, setTabValue] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Dashboard data
   const [stats, setStats] = useState({
     totalMovies: 0,
@@ -52,32 +53,32 @@ const AdminDashboard = () => {
     weeklyViews: 0,
     topMovies: []
   });
-  
+
   // Media management data
   const [movies, setMovies] = useState([]);
   const [tvShows, setTVShows] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Genre management data
   const [genres, setGenres] = useState({
     movie: [],
     tv: []
   });
-  
+
   // User management data
   const [users, setUsers] = useState([]);
-  
+
   // Subscription plans data
   const [plans, setPlans] = useState([
     { id: 1, name: 'Miễn phí', price: 0, features: ['Xem phim SD', 'Có quảng cáo', 'Giới hạn nội dung'] },
     { id: 2, name: 'Premium', price: 149000, features: ['Xem phim HD/4K', 'Không quảng cáo', 'Tất cả nội dung', 'Tải về để xem offline'] }
   ]);
-  
+
   // Orders data
   const [orders, setOrders] = useState([]);
-  
+
   // Squid Game data
   const [squidGameData, setSquidGameData] = useState({
     id: 93405,
@@ -197,7 +198,7 @@ const AdminDashboard = () => {
       }
     ]
   });
-  
+
   const [selectedSeason, setSelectedSeason] = useState(null);
   const [selectedEpisode, setSelectedEpisode] = useState(null);
   const [episodeFormData, setEpisodeFormData] = useState({
@@ -211,7 +212,7 @@ const AdminDashboard = () => {
   });
   const [episodeDialogOpen, setEpisodeDialogOpen] = useState(false);
   const [episodeDialogMode, setEpisodeDialogMode] = useState('add'); // 'add' or 'edit'
-  
+
   // Kiểm tra quyền admin
   useEffect(() => {
     if (!user) {
@@ -219,21 +220,24 @@ const AdminDashboard = () => {
       navigate('/');
       return;
     }
-    
-    if (user.username === 'admin2004' || user.role === 'admin') {
-      // Đã có quyền admin, không làm gì cả
-    } else {
+
+    // Check for admin privileges (email, username, or role)
+    const isAdmin = user.username === 'admin2004' ||
+      user.username === 'hoanganhdo181@gmail.com' ||
+      user.role === 'admin';
+
+    if (!isAdmin) {
       toast.error('Bạn không có quyền truy cập trang này');
       navigate('/');
     }
   }, [user, navigate]);
-  
+
   // Load dashboard data
   useEffect(() => {
     const loadDashboardData = async () => {
       dispatch(setGlobalLoading(true));
       setIsLoading(true);
-      
+
       try {
         // Load movies
         const { response: movieResponse } = await mediaApi.getList({
@@ -241,62 +245,75 @@ const AdminDashboard = () => {
           mediaCategory: tmdbConfigs.mediaCategory.popular,
           page: 1
         });
-        
+
         // Load TV shows
         const { response: tvResponse } = await mediaApi.getList({
           mediaType: tmdbConfigs.mediaType.tv,
           mediaCategory: tmdbConfigs.mediaCategory.popular,
           page: 1
         });
-        
+
         // Load top movies
         const { response: topMoviesResponse } = await mediaApi.getList({
           mediaType: tmdbConfigs.mediaType.movie,
           mediaCategory: tmdbConfigs.mediaCategory.top_rated,
           page: 1
         });
-        
+
         // Set dashboard stats
         if (movieResponse && tvResponse && topMoviesResponse) {
           setMovies(movieResponse.results);
           setTVShows(tvResponse.results);
-          
-          setStats({
-            totalMovies: movieResponse.total_results || movieResponse.results.length,
-            totalTVShows: tvResponse.total_results || tvResponse.results.length,
-            todayViews: Math.floor(Math.random() * 5000) + 1000, // Giả lập dữ liệu lượt xem
-            weeklyViews: Math.floor(Math.random() * 20000) + 10000, // Giả lập dữ liệu lượt xem
-            topMovies: topMoviesResponse.results.slice(0, 5).map(movie => ({
-              ...movie,
-              views: Math.floor(Math.random() * 5000) + 500 // Giả lập dữ liệu lượt xem
-            }))
-          });
+
+          // Get analytics stats
+          const { response: analyticsStats } = await analyticsApi.getStats();
+
+          if (analyticsStats) {
+            setStats({
+              totalMovies: movieResponse.total_results || movieResponse.results.length,
+              totalTVShows: tvResponse.total_results || tvResponse.results.length,
+              todayViews: analyticsStats.todayViews,
+              weeklyViews: analyticsStats.weeklyViews,
+              topMovies: analyticsStats.topMovies.map(m => ({
+                id: m.id,
+                title: m.title,
+                views: m.views
+              }))
+            });
+          } else {
+            // Fallback if stats fail
+            setStats({
+              totalMovies: movieResponse.total_results,
+              totalTVShows: tvResponse.total_results,
+              todayViews: 0,
+              weeklyViews: 0,
+              topMovies: []
+            });
+          }
         }
-        
+
         // Load genres
         const { response: movieGenresResponse } = await genreApi.getList({
           mediaType: tmdbConfigs.mediaType.movie
         });
-        
+
         const { response: tvGenresResponse } = await genreApi.getList({
           mediaType: tmdbConfigs.mediaType.tv
         });
-        
+
         if (movieGenresResponse && tvGenresResponse) {
           setGenres({
             movie: movieGenresResponse.genres,
             tv: tvGenresResponse.genres
           });
         }
-        
-        // Giả lập dữ liệu người dùng
-        setUsers([
-          { id: 1, username: 'user1', displayName: 'Người dùng 1', email: 'user1@example.com', status: 'active', registeredDate: '2023-01-15' },
-          { id: 2, username: 'user2', displayName: 'Người dùng 2', email: 'user2@example.com', status: 'active', registeredDate: '2023-02-20' },
-          { id: 3, username: 'user3', displayName: 'Người dùng 3', email: 'user3@example.com', status: 'blocked', registeredDate: '2023-03-10' },
-          { id: 4, username: 'admin2004', displayName: 'Admin', email: 'admin@example.com', status: 'active', registeredDate: '2023-01-01' }
-        ]);
-        
+
+        // Load users
+        const { response: usersResponse } = await userApi.getAllUsers();
+        if (usersResponse) {
+          setUsers(usersResponse);
+        }
+
         // Giả lập dữ liệu đơn hàng
         setOrders([
           { id: 'ORD001', userId: 1, username: 'user1', planId: 2, planName: 'Premium', amount: 149000, date: '2023-05-15', status: 'completed' },
@@ -311,31 +328,61 @@ const AdminDashboard = () => {
         setIsLoading(false);
       }
     };
-    
+
     loadDashboardData();
   }, [dispatch]);
-  
+
   // Tab change handler
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
-  
+
   // Pagination handlers
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
-  
+
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-  
+
   // Search handler
   const handleSearch = (event) => {
     setSearchQuery(event.target.value);
     setPage(0);
   };
-  
+
+  // User management handlers
+  const handleUserStatusChange = async (userId, currentStatus) => {
+    const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
+    const { response, err } = await userApi.updateUserStatus(userId, newStatus);
+
+    if (response) {
+      setUsers(users.map(u => u.id === userId ? { ...u, status: newStatus } : u));
+      toast.success(`Đã ${newStatus === 'active' ? 'mở khóa' : 'khóa'} tài khoản người dùng`);
+    }
+
+    if (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa người dùng này không?')) {
+      const { response, err } = await userApi.deleteUser(userId);
+
+      if (response) {
+        setUsers(users.filter(u => u.id !== userId));
+        toast.success('Đã xóa người dùng thành công');
+      }
+
+      if (err) {
+        toast.error(err.message);
+      }
+    }
+  };
+
   // Xử lý chọn season trong tree view
   const handleSelectSeason = (season) => {
     setSelectedSeason(season);
@@ -352,7 +399,7 @@ const AdminDashboard = () => {
   const handleOpenEpisodeDialog = (mode, season, episode = null) => {
     setEpisodeDialogMode(mode);
     setSelectedSeason(season);
-    
+
     if (mode === 'edit' && episode) {
       setSelectedEpisode(episode);
       setEpisodeFormData({
@@ -372,7 +419,7 @@ const AdminDashboard = () => {
           .episodes.map(e => e.episode_number),
         0
       );
-      
+
       setEpisodeFormData({
         episode_number: maxEpisode + 1,
         name: "",
@@ -383,7 +430,7 @@ const AdminDashboard = () => {
         air_date: new Date().toISOString().split('T')[0]
       });
     }
-    
+
     setEpisodeDialogOpen(true);
   };
 
@@ -407,7 +454,7 @@ const AdminDashboard = () => {
     const seasonIndex = updatedData.seasons.findIndex(
       s => s.season_number === selectedSeason.season_number
     );
-    
+
     if (episodeDialogMode === 'add') {
       // Thêm episode mới
       updatedData.seasons[seasonIndex].episodes.push(episodeFormData);
@@ -420,7 +467,7 @@ const AdminDashboard = () => {
       );
       updatedData.seasons[seasonIndex].episodes[episodeIndex] = episodeFormData;
     }
-    
+
     setSquidGameData(updatedData);
     setEpisodeDialogOpen(false);
     toast.success(episodeDialogMode === 'add' ? 'Đã thêm tập phim mới' : 'Đã cập nhật tập phim');
@@ -429,21 +476,21 @@ const AdminDashboard = () => {
   // Xử lý xóa episode
   const handleDeleteEpisode = () => {
     if (!selectedSeason || !selectedEpisode) return;
-    
+
     const updatedData = { ...squidGameData };
     const seasonIndex = updatedData.seasons.findIndex(
       s => s.season_number === selectedSeason.season_number
     );
-    
+
     updatedData.seasons[seasonIndex].episodes = updatedData.seasons[seasonIndex].episodes.filter(
       e => e.episode_number !== selectedEpisode.episode_number
     );
-    
+
     setSquidGameData(updatedData);
     setSelectedEpisode(null);
     toast.success('Đã xóa tập phim');
   };
-  
+
   // Render tab content based on active tab
   const renderTabContent = () => {
     switch (tabValue) {
@@ -453,8 +500,8 @@ const AdminDashboard = () => {
             {/* Stats Cards */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
               <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ 
-                  height: '100%', 
+                <Card sx={{
+                  height: '100%',
                   borderRadius: 2,
                   boxShadow: 3,
                   transition: 'transform 0.3s',
@@ -477,10 +524,10 @@ const AdminDashboard = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              
+
               <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ 
-                  height: '100%', 
+                <Card sx={{
+                  height: '100%',
                   borderRadius: 2,
                   boxShadow: 3,
                   transition: 'transform 0.3s',
@@ -503,10 +550,10 @@ const AdminDashboard = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              
+
               <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ 
-                  height: '100%', 
+                <Card sx={{
+                  height: '100%',
                   borderRadius: 2,
                   boxShadow: 3,
                   transition: 'transform 0.3s',
@@ -529,10 +576,10 @@ const AdminDashboard = () => {
                   </CardContent>
                 </Card>
               </Grid>
-              
+
               <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ 
-                  height: '100%', 
+                <Card sx={{
+                  height: '100%',
                   borderRadius: 2,
                   boxShadow: 3,
                   transition: 'transform 0.3s',
@@ -556,11 +603,11 @@ const AdminDashboard = () => {
                 </Card>
               </Grid>
             </Grid>
-            
+
             {/* Charts Row */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
               <Grid item xs={12} md={8}>
-                <Card sx={{ 
+                <Card sx={{
                   borderRadius: 2,
                   boxShadow: 3,
                   p: 2,
@@ -569,9 +616,9 @@ const AdminDashboard = () => {
                   <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
                     Lượt xem theo ngày
                   </Typography>
-                  
+
                   {!isLoading ? (
-                    <Chart 
+                    <Chart
                       options={{
                         chart: {
                           id: 'views-chart',
@@ -631,9 +678,9 @@ const AdminDashboard = () => {
                   )}
                 </Card>
               </Grid>
-              
+
               <Grid item xs={12} md={4}>
-                <Card sx={{ 
+                <Card sx={{
                   borderRadius: 2,
                   boxShadow: 3,
                   p: 2,
@@ -642,9 +689,9 @@ const AdminDashboard = () => {
                   <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
                     Phân bố thể loại phim
                   </Typography>
-                  
+
                   {!isLoading && genres.movie.length > 0 ? (
-                    <Chart 
+                    <Chart
                       options={{
                         chart: {
                           id: 'genre-chart',
@@ -687,9 +734,9 @@ const AdminDashboard = () => {
                 </Card>
               </Grid>
             </Grid>
-            
+
             {/* Top Movies Table */}
-            <Card sx={{ 
+            <Card sx={{
               borderRadius: 2,
               boxShadow: 3,
               mb: 4,
@@ -699,7 +746,7 @@ const AdminDashboard = () => {
                 <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
                   5 Phim được xem nhiều nhất
                 </Typography>
-                
+
                 {isLoading ? (
                   <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
                     <CircularProgress />
@@ -724,9 +771,9 @@ const AdminDashboard = () => {
                                   component="img"
                                   src={tmdbConfigs.posterPath(movie.poster_path)}
                                   alt={movie.title}
-                                  sx={{ 
-                                    width: 40, 
-                                    height: 60, 
+                                  sx={{
+                                    width: 40,
+                                    height: 60,
                                     borderRadius: 1,
                                     objectFit: 'cover'
                                   }}
@@ -760,7 +807,7 @@ const AdminDashboard = () => {
             </Card>
           </Box>
         );
-        
+
       case 1: // Movies
         return (
           <Box>
@@ -768,7 +815,7 @@ const AdminDashboard = () => {
               <Typography variant="h5" fontWeight="bold">
                 Quản lý phim
               </Typography>
-              
+
               <Stack direction="row" spacing={2}>
                 <TextField
                   placeholder="Tìm kiếm phim..."
@@ -784,7 +831,7 @@ const AdminDashboard = () => {
                   }}
                   sx={{ minWidth: 250 }}
                 />
-                
+
                 <Button
                   variant="contained"
                   startIcon={<AddIcon />}
@@ -794,7 +841,7 @@ const AdminDashboard = () => {
                 </Button>
               </Stack>
             </Stack>
-            
+
             <Tabs
               value={tabValue === 1 ? 0 : 1}
               onChange={(e, val) => {
@@ -806,7 +853,7 @@ const AdminDashboard = () => {
               <Tab label="Phim lẻ" icon={<MovieIcon />} iconPosition="start" />
               <Tab label="Phim bộ" icon={<TvIcon />} iconPosition="start" />
             </Tabs>
-            
+
             {isLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
                 <CircularProgress />
@@ -885,7 +932,7 @@ const AdminDashboard = () => {
                     </TableBody>
                   </Table>
                 </TableContainer>
-                
+
                 <TablePagination
                   component="div"
                   count={tabValue === 1 ? movies.length : tvShows.length}
@@ -899,7 +946,7 @@ const AdminDashboard = () => {
             )}
           </Box>
         );
-        
+
       case 2: // Genres
         return (
           <Box>
@@ -911,7 +958,7 @@ const AdminDashboard = () => {
             </Typography>
           </Box>
         );
-        
+
       case 3: // Users
         return (
           <Box>
@@ -919,7 +966,7 @@ const AdminDashboard = () => {
               <Typography variant="h5" fontWeight="bold">
                 Quản lý người dùng
               </Typography>
-              
+
               <Stack direction="row" spacing={2}>
                 <TextField
                   placeholder="Tìm kiếm người dùng..."
@@ -935,7 +982,7 @@ const AdminDashboard = () => {
                 />
               </Stack>
             </Stack>
-            
+
             {isLoading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
                 <CircularProgress />
@@ -959,16 +1006,16 @@ const AdminDashboard = () => {
                         <TableRow key={user.id} hover>
                           <TableCell>
                             <Typography variant="body1" fontWeight="medium">
-                              {user.displayName}
+                              {user.display_name || user.displayName}
                             </Typography>
                           </TableCell>
                           <TableCell>{user.username}</TableCell>
                           <TableCell>{user.email}</TableCell>
-                          <TableCell>{user.registeredDate}</TableCell>
+                          <TableCell>{new Date(user.created_at || user.registeredDate).toLocaleDateString('vi-VN')}</TableCell>
                           <TableCell>
-                            <Chip 
-                              label={user.status === 'active' ? 'Hoạt động' : 'Bị khóa'} 
-                              color={user.status === 'active' ? 'success' : 'error'}
+                            <Chip
+                              label={user.status === 'blocked' ? 'Bị khóa' : 'Hoạt động'}
+                              color={user.status === 'blocked' ? 'error' : 'success'}
                               size="small"
                             />
                           </TableCell>
@@ -977,17 +1024,18 @@ const AdminDashboard = () => {
                               <Button
                                 size="small"
                                 variant="outlined"
-                                color="primary"
+                                color={user.status === 'blocked' ? 'success' : 'error'}
+                                onClick={() => handleUserStatusChange(user.id, user.status || 'active')}
                               >
-                                Đặt lại mật khẩu
+                                {user.status === 'blocked' ? 'Mở khóa' : 'Khóa'}
                               </Button>
-                              <Button
+                              <IconButton
                                 size="small"
-                                variant="outlined"
-                                color={user.status === 'active' ? 'error' : 'success'}
+                                color="error"
+                                onClick={() => handleDeleteUser(user.id)}
                               >
-                                {user.status === 'active' ? 'Khóa' : 'Mở khóa'}
-                              </Button>
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
                             </Stack>
                           </TableCell>
                         </TableRow>
@@ -999,7 +1047,7 @@ const AdminDashboard = () => {
             )}
           </Box>
         );
-      
+
       case 4: // Subscription plans
         return (
           <Box>
@@ -1007,7 +1055,7 @@ const AdminDashboard = () => {
               <Typography variant="h5" fontWeight="bold">
                 Gói dịch vụ
               </Typography>
-              
+
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
@@ -1016,11 +1064,11 @@ const AdminDashboard = () => {
                 Thêm gói mới
               </Button>
             </Stack>
-            
+
             <Grid container spacing={3} sx={{ mb: 5 }}>
               {plans.map(plan => (
                 <Grid item xs={12} md={6} key={plan.id}>
-                  <Card sx={{ 
+                  <Card sx={{
                     borderRadius: 2,
                     boxShadow: 3,
                     position: 'relative',
@@ -1035,9 +1083,9 @@ const AdminDashboard = () => {
                           {plan.price === 0 ? 'Miễn phí' : `${plan.price.toLocaleString()}đ/tháng`}
                         </Typography>
                       </Stack>
-                      
+
                       <Divider sx={{ my: 2 }} />
-                      
+
                       <Stack spacing={1.5}>
                         {plan.features.map((feature, index) => (
                           <Stack key={index} direction="row" spacing={1} alignItems="center">
@@ -1046,7 +1094,7 @@ const AdminDashboard = () => {
                           </Stack>
                         ))}
                       </Stack>
-                      
+
                       <Stack direction="row" spacing={1} sx={{ mt: 3, justifyContent: 'flex-end' }}>
                         <Button
                           variant="outlined"
@@ -1069,11 +1117,11 @@ const AdminDashboard = () => {
                 </Grid>
               ))}
             </Grid>
-            
+
             <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
               Đơn hàng gần đây
             </Typography>
-            
+
             <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: 3 }}>
               <Table>
                 <TableHead>
@@ -1099,8 +1147,8 @@ const AdminDashboard = () => {
                       <TableCell>{order.amount.toLocaleString()}đ</TableCell>
                       <TableCell>{order.date}</TableCell>
                       <TableCell>
-                        <Chip 
-                          label={order.status === 'completed' ? 'Thành công' : 'Thất bại'} 
+                        <Chip
+                          label={order.status === 'completed' ? 'Thành công' : 'Thất bại'}
                           color={order.status === 'completed' ? 'success' : 'error'}
                           size="small"
                         />
@@ -1112,7 +1160,7 @@ const AdminDashboard = () => {
             </TableContainer>
           </Box>
         );
-        
+
       case 5: // Reports
         return (
           <Box>
@@ -1124,7 +1172,7 @@ const AdminDashboard = () => {
             </Typography>
           </Box>
         );
-        
+
       case 6: // Squid Game Manager
         return (
           <Box>
@@ -1133,20 +1181,20 @@ const AdminDashboard = () => {
                 Quản lý chi tiết phim Squid Game
               </Typography>
             </Stack>
-            
+
             <Grid container spacing={3}>
               <Grid item xs={12} md={4}>
                 <Paper sx={{ p: 2, height: '100%', borderRadius: 2, boxShadow: 3 }}>
                   <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
                     Cấu trúc phim
                   </Typography>
-                  
+
                   <TreeView
                     defaultCollapseIcon={<ExpandMoreIcon />}
                     defaultExpandIcon={<ChevronRightIcon />}
-                    sx={{ 
-                      height: 'auto', 
-                      maxHeight: 600, 
+                    sx={{
+                      height: 'auto',
+                      maxHeight: 600,
                       overflowY: 'auto',
                       '& .MuiTreeItem-root': {
                         '&:hover': {
@@ -1155,8 +1203,8 @@ const AdminDashboard = () => {
                       }
                     }}
                   >
-                    <TreeItem 
-                      nodeId="squid_game" 
+                    <TreeItem
+                      nodeId="squid_game"
                       label={
                         <Box sx={{ display: 'flex', alignItems: 'center', py: 0.5 }}>
                           <MovieIcon color="primary" sx={{ mr: 1 }} />
@@ -1171,19 +1219,19 @@ const AdminDashboard = () => {
                           key={`season_${season.season_number}`}
                           nodeId={`season_${season.season_number}`}
                           label={
-                            <Box sx={{ 
-                              display: 'flex', 
-                              alignItems: 'center', 
+                            <Box sx={{
+                              display: 'flex',
+                              alignItems: 'center',
                               justifyContent: 'space-between',
                               py: 0.5,
                               backgroundColor: selectedSeason?.season_number === season.season_number && !selectedEpisode ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
                               borderRadius: 1,
                               px: 1
                             }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleSelectSeason(season);
-                            }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectSeason(season);
+                              }}
                             >
                               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                                 <TvIcon color="secondary" sx={{ mr: 1 }} />
@@ -1209,18 +1257,18 @@ const AdminDashboard = () => {
                               key={`episode_${season.season_number}_${episode.episode_number}`}
                               nodeId={`episode_${season.season_number}_${episode.episode_number}`}
                               label={
-                                <Box sx={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
+                                <Box sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
                                   py: 0.5,
                                   backgroundColor: selectedEpisode?.episode_number === episode.episode_number && selectedSeason?.season_number === season.season_number ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
                                   borderRadius: 1,
                                   px: 1
                                 }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSelectEpisode(season, episode);
-                                }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectEpisode(season, episode);
+                                  }}
                                 >
                                   <VideoLibraryIcon fontSize="small" sx={{ mr: 1 }} />
                                   <Typography variant="body2">
@@ -1236,7 +1284,7 @@ const AdminDashboard = () => {
                   </TreeView>
                 </Paper>
               </Grid>
-              
+
               <Grid item xs={12} md={8}>
                 <Paper sx={{ p: 3, borderRadius: 2, boxShadow: 3 }}>
                   {!selectedSeason && !selectedEpisode ? (
@@ -1251,7 +1299,7 @@ const AdminDashboard = () => {
                       <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
                         {selectedSeason.name}
                       </Typography>
-                      
+
                       <Grid container spacing={3}>
                         <Grid item xs={12}>
                           <TextField
@@ -1263,7 +1311,7 @@ const AdminDashboard = () => {
                             variant="outlined"
                           />
                         </Grid>
-                        
+
                         <Grid item xs={12} sm={6}>
                           <TextField
                             label="Số phần"
@@ -1272,7 +1320,7 @@ const AdminDashboard = () => {
                             variant="outlined"
                           />
                         </Grid>
-                        
+
                         <Grid item xs={12} sm={6}>
                           <TextField
                             label="Số tập"
@@ -1282,12 +1330,12 @@ const AdminDashboard = () => {
                           />
                         </Grid>
                       </Grid>
-                      
+
                       <Box sx={{ mt: 3 }}>
                         <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
                           Danh sách tập ({selectedSeason.episodes.length})
                         </Typography>
-                        
+
                         <TableContainer>
                           <Table>
                             <TableHead>
@@ -1308,15 +1356,15 @@ const AdminDashboard = () => {
                                   <TableCell>{episode.air_date}</TableCell>
                                   <TableCell align="right">
                                     <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                      <IconButton 
-                                        size="small" 
+                                      <IconButton
+                                        size="small"
                                         color="primary"
                                         onClick={() => handleOpenEpisodeDialog('edit', selectedSeason, episode)}
                                       >
                                         <EditIcon fontSize="small" />
                                       </IconButton>
-                                      <IconButton 
-                                        size="small" 
+                                      <IconButton
+                                        size="small"
                                         color="error"
                                         onClick={() => {
                                           handleSelectEpisode(selectedSeason, episode);
@@ -1340,7 +1388,7 @@ const AdminDashboard = () => {
                       <Typography variant="h5" fontWeight="bold" sx={{ mb: 3 }}>
                         {selectedSeason.name} - Tập {selectedEpisode.episode_number}: {selectedEpisode.name}
                       </Typography>
-                      
+
                       <Grid container spacing={3}>
                         <Grid item xs={12}>
                           <TextField
@@ -1350,7 +1398,7 @@ const AdminDashboard = () => {
                             variant="outlined"
                           />
                         </Grid>
-                        
+
                         <Grid item xs={12}>
                           <TextField
                             label="Tóm tắt"
@@ -1361,7 +1409,7 @@ const AdminDashboard = () => {
                             variant="outlined"
                           />
                         </Grid>
-                        
+
                         <Grid item xs={12} sm={6}>
                           <TextField
                             label="Thời lượng (phút)"
@@ -1371,7 +1419,7 @@ const AdminDashboard = () => {
                             type="number"
                           />
                         </Grid>
-                        
+
                         <Grid item xs={12} sm={6}>
                           <TextField
                             label="Ngày phát hành"
@@ -1382,7 +1430,7 @@ const AdminDashboard = () => {
                             InputLabelProps={{ shrink: true }}
                           />
                         </Grid>
-                        
+
                         <Grid item xs={12}>
                           <TextField
                             label="URL Video"
@@ -1391,7 +1439,7 @@ const AdminDashboard = () => {
                             variant="outlined"
                           />
                         </Grid>
-                        
+
                         <Grid item xs={12}>
                           <TextField
                             label="URL Ảnh thu nhỏ"
@@ -1401,7 +1449,7 @@ const AdminDashboard = () => {
                           />
                         </Grid>
                       </Grid>
-                      
+
                       <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
                         <Button
                           variant="outlined"
@@ -1424,10 +1472,10 @@ const AdminDashboard = () => {
                 </Paper>
               </Grid>
             </Grid>
-            
+
             {/* Episode Dialog */}
-            <Dialog 
-              open={episodeDialogOpen} 
+            <Dialog
+              open={episodeDialogOpen}
               onClose={handleCloseEpisodeDialog}
               fullWidth
               maxWidth="md"
@@ -1448,7 +1496,7 @@ const AdminDashboard = () => {
                       type="number"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6}>
                     <TextField
                       name="name"
@@ -1459,7 +1507,7 @@ const AdminDashboard = () => {
                       variant="outlined"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12}>
                     <TextField
                       name="overview"
@@ -1472,7 +1520,7 @@ const AdminDashboard = () => {
                       variant="outlined"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6}>
                     <TextField
                       name="runtime"
@@ -1484,7 +1532,7 @@ const AdminDashboard = () => {
                       type="number"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12} sm={6}>
                     <TextField
                       name="air_date"
@@ -1497,7 +1545,7 @@ const AdminDashboard = () => {
                       InputLabelProps={{ shrink: true }}
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12}>
                     <TextField
                       name="video_url"
@@ -1509,7 +1557,7 @@ const AdminDashboard = () => {
                       helperText="Nhập URL iframe hoặc YouTube embed"
                     />
                   </Grid>
-                  
+
                   <Grid item xs={12}>
                     <TextField
                       name="still_path"
@@ -1525,8 +1573,8 @@ const AdminDashboard = () => {
               </DialogContent>
               <DialogActions>
                 <Button onClick={handleCloseEpisodeDialog}>Hủy</Button>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   onClick={handleSaveEpisode}
                   disabled={!episodeFormData.name || !episodeFormData.video_url}
                 >
@@ -1536,7 +1584,7 @@ const AdminDashboard = () => {
             </Dialog>
           </Box>
         );
-        
+
       case 7: // Settings
         return (
           <Box>
@@ -1548,12 +1596,12 @@ const AdminDashboard = () => {
             </Typography>
           </Box>
         );
-        
+
       default:
         return null;
     }
   };
-  
+
   // Render tabs
   const tabs = [
     { icon: <DashboardIcon />, label: "Dashboard" },
@@ -1565,15 +1613,15 @@ const AdminDashboard = () => {
     { icon: <VideoLibraryIcon />, label: "Squid Game" },
     { icon: <SettingsIcon />, label: "Thiết lập" }
   ];
-  
+
   return (
     <Box sx={{ ...uiConfigs.style.mainContent, pt: 8 }}>
       <Container header="Trang quản trị">
         <Grid container spacing={3}>
           {/* Sidebar */}
           <Grid item xs={12} md={3} lg={2}>
-            <Paper sx={{ 
-              borderRadius: 2, 
+            <Paper sx={{
+              borderRadius: 2,
               boxShadow: 3,
               overflow: 'hidden',
               height: '100%'
@@ -1607,12 +1655,12 @@ const AdminDashboard = () => {
               </Tabs>
             </Paper>
           </Grid>
-          
+
           {/* Content */}
           <Grid item xs={12} md={9} lg={10}>
-            <Paper sx={{ 
-              p: 4, 
-              borderRadius: 2, 
+            <Paper sx={{
+              p: 4,
+              borderRadius: 2,
               boxShadow: 3,
               minHeight: '70vh'
             }}>

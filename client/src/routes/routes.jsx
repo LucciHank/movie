@@ -17,7 +17,13 @@ export const routesGen = {
   home: "/",
   mediaList: (type) => `/${type}`,
   mediaDetail: (type, id) => `/${type}/${id}`,
-  mediaWatch: (type, id) => `/${type}/${id}/watch`,
+  mediaWatch: (type, id, season, episode) => {
+    let url = `/${type}/${id}/watch`;
+    if (season && episode) {
+      url += `?season=${season}&episode=${episode}`;
+    }
+    return url;
+  },
   mediaSearch: "/search",
   person: (id) => `/person/${id}`,
   favoriteList: "/favorites",

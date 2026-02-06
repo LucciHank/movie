@@ -74,7 +74,7 @@ const MediaDetail = () => {
         setMedia(response);
         setIsFavorite(response.isFavorite);
         setGenres(response.genres.splice(0, 2));
-        
+
         // Nếu là phim bộ, thiết lập danh sách mùa và tập
         if (mediaType === tmdbConfigs.mediaType.tv) {
           const seasonsList = [];
@@ -85,7 +85,7 @@ const MediaDetail = () => {
             });
           }
           setSeasons(seasonsList);
-          
+
           // Thiết lập danh sách tập cho mùa đầu tiên
           if (response.seasons && response.seasons.length > 0) {
             const firstSeason = response.seasons.find(s => s.season_number === 1) || response.seasons[0];
@@ -158,6 +158,11 @@ const MediaDetail = () => {
   };
 
   const onWatchClick = () => {
+    if (!user) {
+      dispatch(setAuthModalOpen(true));
+      return;
+    }
+
     if (mediaType === tmdbConfigs.mediaType.tv) {
       navigate(`/${mediaType}/${mediaId}/watch?season=${selectedSeason}&episode=${selectedEpisode}`);
     } else {
@@ -182,7 +187,7 @@ const MediaDetail = () => {
   const handleSeasonSelect = (seasonNumber) => {
     setSelectedSeason(seasonNumber);
     setSelectedEpisode(1); // Reset episode selection when changing season
-    
+
     // Update episodes list for the selected season
     if (media?.seasons) {
       const season = media.seasons.find(s => s.season_number === seasonNumber);
@@ -193,11 +198,11 @@ const MediaDetail = () => {
             episode_number: i,
             name: `Tập ${i}`
           });
-    }
+        }
         setEpisodes(episodesList);
       }
     }
-    
+
     handleSeasonMenuClose();
   };
 
@@ -264,7 +269,7 @@ const MediaDetail = () => {
                   transformOrigin: "bottom",
                   transform: { xs: "translateY(30%)", sm: "translateY(25%)" }
                 }}>
-                  <Box 
+                  <Box
                     component="img"
                     src={tmdbConfigs.posterPath(media.poster_path || media.backdrop_path)}
                     alt={media.title || media.name}
@@ -275,7 +280,7 @@ const MediaDetail = () => {
                       aspectRatio: "2/3"
                     }}
                   />
-              </Box>
+                </Box>
               </Grid>
 
               {/* Movie info */}
@@ -294,11 +299,11 @@ const MediaDetail = () => {
                   >
                     {media.title || media.name}
                   </Typography>
-                  
+
                   {/* Year, runtime, rating */}
                   <Stack direction="row" spacing={2} alignItems="center">
-                    <Chip 
-                      label={mediaType === tmdbConfigs.mediaType.movie ? "Phim lẻ" : "Phim bộ"} 
+                    <Chip
+                      label={mediaType === tmdbConfigs.mediaType.movie ? "Phim lẻ" : "Phim bộ"}
                       size="small"
                       sx={{
                         backgroundColor: theme.palette.primary.main,
@@ -308,10 +313,10 @@ const MediaDetail = () => {
                         fontSize: "0.75rem"
                       }}
                     />
-                    
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
+
+                    <Typography
+                      variant="body2"
+                      sx={{
                         color: "#fff",
                         display: "flex",
                         alignItems: "center",
@@ -323,11 +328,11 @@ const MediaDetail = () => {
                       <CalendarTodayOutlinedIcon fontSize="small" />
                       {(media.release_date || media.first_air_date || "").split("-")[0]}
                     </Typography>
-                    
+
                     {media.runtime && (
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
+                      <Typography
+                        variant="body2"
+                        sx={{
                           color: "#fff",
                           display: "flex",
                           alignItems: "center",
@@ -340,19 +345,19 @@ const MediaDetail = () => {
                         {formatRuntime(media.runtime)}
                       </Typography>
                     )}
-                    
+
                     <Stack direction="row" spacing={0.5} alignItems="center">
                       <StarIcon sx={{ color: "#FFD700", fontSize: "1.2rem" }} />
-                      <Typography 
-                        variant="body2" 
-                        fontWeight="600" 
+                      <Typography
+                        variant="body2"
+                        fontWeight="600"
                         sx={{ color: "#fff" }}
                       >
                         {media.vote_average.toFixed(1)}
                       </Typography>
                     </Stack>
                   </Stack>
-                  
+
                   {/* Genres */}
                   <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1 }}>
                     {media.genres.map((genre, index) => (
@@ -360,7 +365,7 @@ const MediaDetail = () => {
                         key={index}
                         label={genre.name}
                         size="small"
-                        sx={{ 
+                        sx={{
                           borderRadius: 1,
                           backgroundColor: 'rgba(255,255,255,0.2)',
                           color: '#fff',
@@ -392,18 +397,18 @@ const MediaDetail = () => {
               >
                 Nội dung phim
               </Typography>
-              
-                  <Typography
-                    variant="body1"
+
+              <Typography
+                variant="body1"
                 sx={{
                   mb: 4,
                   color: "text.primary",
                   lineHeight: 1.8,
                   fontFamily: '"SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif',
                 }}
-                  >
-                    {media.overview}
-                  </Typography>
+              >
+                {media.overview}
+              </Typography>
 
               {/* Buttons */}
               <Stack direction="row" spacing={2} sx={{ mb: 5 }}>
@@ -425,7 +430,7 @@ const MediaDetail = () => {
                     >
                       Xem phim
                     </Button>
-                    
+
                     {/* Season selector */}
                     <Button
                       variant="outlined"
@@ -447,8 +452,8 @@ const MediaDetail = () => {
                     >
                       {isSquidGame ? (
                         [1, 2, 3].map((season) => (
-                          <MenuItem 
-                            key={season} 
+                          <MenuItem
+                            key={season}
                             onClick={() => handleSeasonSelect(season)}
                             selected={selectedSeason === season}
                           >
@@ -457,8 +462,8 @@ const MediaDetail = () => {
                         ))
                       ) : (
                         seasons.map((season) => (
-                          <MenuItem 
-                            key={season.season_number} 
+                          <MenuItem
+                            key={season.season_number}
                             onClick={() => handleSeasonSelect(season.season_number)}
                             selected={selectedSeason === season.season_number}
                           >
@@ -467,7 +472,7 @@ const MediaDetail = () => {
                         ))
                       )}
                     </Menu>
-                    
+
                     {/* Episode selector */}
                     <Button
                       variant="outlined"
@@ -491,8 +496,8 @@ const MediaDetail = () => {
                       }}
                     >
                       {episodes.map((episode) => (
-                        <MenuItem 
-                          key={episode.episode_number} 
+                        <MenuItem
+                          key={episode.episode_number}
                           onClick={() => handleEpisodeSelect(episode.episode_number)}
                           selected={selectedEpisode === episode.episode_number}
                         >
@@ -519,7 +524,7 @@ const MediaDetail = () => {
                     Xem phim
                   </Button>
                 )}
-                
+
                 <Button
                   variant="outlined"
                   size="large"
@@ -534,7 +539,7 @@ const MediaDetail = () => {
                 >
                   {isFavorite ? "Đã thích" : "Yêu thích"}
                 </Button>
-                
+
                 <Button
                   variant="outlined"
                   size="large"
@@ -547,8 +552,8 @@ const MediaDetail = () => {
                   }}
                 >
                   Chia sẻ
-                    </Button>
-                  </Stack>
+                </Button>
+              </Stack>
 
               {/* Cast */}
               <Box sx={{ mb: 5 }}>
@@ -562,9 +567,9 @@ const MediaDetail = () => {
                 >
                   Diễn viên
                 </Typography>
-                    <CastSlide casts={media.credits.cast} />
+                <CastSlide casts={media.credits.cast} />
               </Box>
-              
+
               {/* Videos */}
               <Box ref={videoRef} sx={{ mb: 5 }}>
                 <Typography
@@ -579,7 +584,7 @@ const MediaDetail = () => {
                 </Typography>
                 <MediaVideosSlide videos={[...media.videos.results].splice(0, 5)} />
               </Box>
-              
+
               {/* Media reviews */}
               <Box sx={{ mb: 5 }}>
                 <Typography
@@ -595,14 +600,14 @@ const MediaDetail = () => {
                 <MediaReview reviews={media.reviews} media={media} mediaType={mediaType} />
               </Box>
             </Grid>
-            
+
             {/* Side info column */}
             <Grid item xs={12} sm={5} md={4} lg={3} order={{ xs: 1, sm: 2 }}>
-              <Paper sx={{ 
-                p: 3, 
+              <Paper sx={{
+                p: 3,
                 borderRadius: 3,
-                boxShadow: (theme) => theme.palette.mode === 'dark' 
-                  ? '0 4px 20px rgba(0,0,0,0.5)' 
+                boxShadow: (theme) => theme.palette.mode === 'dark'
+                  ? '0 4px 20px rgba(0,0,0,0.5)'
                   : '0 4px 20px rgba(0,0,0,0.1)',
                 mb: 4
               }}>
@@ -616,7 +621,7 @@ const MediaDetail = () => {
                 >
                   Thông tin chi tiết
                 </Typography>
-                
+
                 <Stack spacing={2} divider={<Divider flexItem />}>
                   {/* Original title */}
                   {media.original_title !== media.title && (
@@ -629,7 +634,7 @@ const MediaDetail = () => {
                       </Typography>
                     </Box>
                   )}
-                  
+
                   {/* Status */}
                   <Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
@@ -639,7 +644,7 @@ const MediaDetail = () => {
                       {media.status === "Released" ? "Đã phát hành" : media.status}
                     </Typography>
                   </Box>
-                  
+
                   {/* Release date */}
                   <Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
@@ -648,8 +653,8 @@ const MediaDetail = () => {
                     <Typography variant="body1" fontWeight={500}>
                       {new Date(media.release_date || media.first_air_date).toLocaleDateString("vi-VN")}
                     </Typography>
-            </Box>
-                  
+                  </Box>
+
                   {/* Language */}
                   {media.spoken_languages && media.spoken_languages.length > 0 && (
                     <Box>
@@ -659,9 +664,9 @@ const MediaDetail = () => {
                       <Typography variant="body1" fontWeight={500}>
                         {media.spoken_languages.map(lang => lang.name).join(", ")}
                       </Typography>
-          </Box>
+                    </Box>
                   )}
-                  
+
                   {/* Production countries */}
                   {media.production_countries && media.production_countries.length > 0 && (
                     <Box>
@@ -673,7 +678,7 @@ const MediaDetail = () => {
                       </Typography>
                     </Box>
                   )}
-                  
+
                   {/* Budget and revenue for movies */}
                   {mediaType === tmdbConfigs.mediaType.movie && media.budget > 0 && (
                     <Box>
@@ -689,7 +694,7 @@ const MediaDetail = () => {
                       </Typography>
                     </Box>
                   )}
-                  
+
                   {mediaType === tmdbConfigs.mediaType.movie && media.revenue > 0 && (
                     <Box>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
@@ -706,14 +711,14 @@ const MediaDetail = () => {
                   )}
                 </Stack>
               </Paper>
-              
+
               {/* Production companies */}
               {media.production_companies && media.production_companies.length > 0 && (
-                <Paper sx={{ 
-                  p: 3, 
+                <Paper sx={{
+                  p: 3,
                   borderRadius: 3,
-                  boxShadow: (theme) => theme.palette.mode === 'dark' 
-                    ? '0 4px 20px rgba(0,0,0,0.5)' 
+                  boxShadow: (theme) => theme.palette.mode === 'dark'
+                    ? '0 4px 20px rgba(0,0,0,0.5)'
                     : '0 4px 20px rgba(0,0,0,0.1)',
                 }}>
                   <Typography
@@ -726,7 +731,7 @@ const MediaDetail = () => {
                   >
                     Nhà sản xuất
                   </Typography>
-                  
+
                   <Stack spacing={2}>
                     {media.production_companies.slice(0, 3).map((company, index) => (
                       <Stack key={index} direction="row" spacing={2} alignItems="center">
@@ -750,7 +755,7 @@ const MediaDetail = () => {
               )}
             </Grid>
           </Grid>
-          
+
           {/* Recommendations */}
           <Box sx={{ mt: 6 }}>
             <Typography
@@ -771,7 +776,7 @@ const MediaDetail = () => {
                 mediaCategory={tmdbConfigs.mediaCategory.top_rated}
               />
             )}
-        </Box>
+          </Box>
         </MuiContainer>
       </>
     ) : null

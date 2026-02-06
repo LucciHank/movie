@@ -25,5 +25,29 @@ const personMedias = async (req, res) => {
   }
 };
 
+const personPopular = async (req, res) => {
+  try {
+    const { page = 1 } = req.query;
 
-export default { personDetail, personMedias };
+    const result = await tmdbApi.personPopular({ page });
+
+    responseHandler.ok(res, result);
+  } catch {
+    responseHandler.error(res);
+  }
+};
+
+const personSearch = async (req, res) => {
+  try {
+    const { query, page = 1 } = req.query;
+
+    const result = await tmdbApi.personSearch({ query, page });
+
+    responseHandler.ok(res, result);
+  } catch {
+    responseHandler.error(res);
+  }
+};
+
+
+export default { personDetail, personMedias, personPopular, personSearch };

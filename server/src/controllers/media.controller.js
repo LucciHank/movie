@@ -1,8 +1,6 @@
 import responseHandler from "../handlers/response.handler.js";
 import tmdbApi from "../tmdb/tmdb.api.js";
-import userModel from "../models/user.model.js";
-import favoriteModel from "../models/favorite.model.js";
-import reviewModel from "../models/review.model.js";
+import supabase from "../supabase.js";
 import tokenMiddlerware from "../middlewares/token.middleware.js";
 
 const getList = async (req, res) => {
@@ -13,7 +11,8 @@ const getList = async (req, res) => {
     const response = await tmdbApi.mediaList({ mediaType, mediaCategory, page });
 
     return responseHandler.ok(res, response);
-  } catch {
+  } catch (e) {
+    console.log("getList error:", e.message);
     responseHandler.error(res);
   }
 };
@@ -70,19 +69,46 @@ const getDetail = async (req, res) => {
     const tokenDecoded = tokenMiddlerware.tokenDecode(req);
 
     if (tokenDecoded) {
-      const user = await userModel.findById(tokenDecoded.data);
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', tokenDecoded.data)
+        .single();
 
       if (user) {
-        const isFavorite = await favoriteModel.findOne({ user: user.id, mediaId });
+        const { data: isFavorite } = await supabase
+          .from('favorites')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('media_id', mediaId)
+          .single();
         media.isFavorite = isFavorite !== null;
       }
     }
 
-    media.reviews = await reviewModel.find({ mediaId }).populate("user").sort("-createdAt");
+    const { data: reviews } = await supabase
+      .from('reviews')
+      .select(`
+        *,
+        users:user_id (id, display_name)
+      `)
+      .eq('media_id', mediaId)
+      .order('created_at', { ascending: false });
+
+    media.reviews = (reviews || []).map(review => ({
+      id: review.id,
+      content: review.content,
+      rating: review.rating,
+      createdAt: review.created_at,
+      user: {
+        id: review.users.id,
+        displayName: review.users.display_name
+      }
+    }));
 
     responseHandler.ok(res, media);
   } catch (e) {
-    console.log(e);
+    console.log("getDetail error:", e.message);
     responseHandler.error(res);
   }
 };

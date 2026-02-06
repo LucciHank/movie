@@ -3,7 +3,7 @@ import { body } from "express-validator";
 import favoriteController from "../controllers/favorite.controller.js";
 import userController from "../controllers/user.controller.js";
 import requestHandler from "../handlers/request.handler.js";
-import userModel from "../models/user.model.js";
+import supabase from "../supabase.js";
 import tokenMiddleware from "../middlewares/token.middleware.js";
 
 const router = express.Router();
@@ -14,7 +14,11 @@ router.post(
     .exists().withMessage("username is required")
     .isLength({ min: 8 }).withMessage("username minimum 8 characters")
     .custom(async value => {
-      const user = await userModel.findOne({ username: value });
+      const { data: user } = await supabase
+        .from('users')
+        .select('id')
+        .eq('username', value)
+        .single();
       if (user) return Promise.reject("username already used");
     }),
   body("password")
@@ -66,6 +70,12 @@ router.put(
   userController.updatePassword
 );
 
+router.put(
+  "/update-profile",
+  tokenMiddleware.auth,
+  userController.updateProfile
+);
+
 router.get(
   "/info",
   tokenMiddleware.auth,
@@ -101,6 +111,25 @@ router.delete(
   "/favorites/:favoriteId",
   tokenMiddleware.auth,
   favoriteController.removeFavorite
+);
+
+// Admin routes
+router.get(
+  "/admin/users",
+  tokenMiddleware.auth,
+  userController.getAllUsers
+);
+
+router.put(
+  "/admin/users/:userId",
+  tokenMiddleware.auth,
+  userController.updateUserStatus
+);
+
+router.delete(
+  "/admin/users/:userId",
+  tokenMiddleware.auth,
+  userController.deleteUser
 );
 
 export default router;

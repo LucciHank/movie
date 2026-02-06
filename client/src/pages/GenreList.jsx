@@ -50,22 +50,22 @@ const GenreList = () => {
   useEffect(() => {
     const getGenres = async () => {
       dispatch(setGlobalLoading(true));
-      
+
       try {
         // Lấy thể loại phim lẻ
-        const { response: movieResponse, err: movieErr } = await genreApi.getList({ 
-          mediaType: tmdbConfigs.mediaType.movie 
+        const { response: movieResponse, err: movieErr } = await genreApi.getList({
+          mediaType: tmdbConfigs.mediaType.movie
         });
-        
+
         if (movieErr) toast.error(movieErr.message);
-        
+
         // Lấy thể loại phim bộ
-        const { response: tvResponse, err: tvErr } = await genreApi.getList({ 
-          mediaType: tmdbConfigs.mediaType.tv 
+        const { response: tvResponse, err: tvErr } = await genreApi.getList({
+          mediaType: tmdbConfigs.mediaType.tv
         });
-        
+
         if (tvErr) toast.error(tvErr.message);
-        
+
         if (movieResponse && tvResponse) {
           // Gộp và loại bỏ trùng lặp
           const movieGenres = movieResponse.genres.map(genre => ({
@@ -73,22 +73,22 @@ const GenreList = () => {
             name_vi: genreTranslations[genre.name] || genre.name,
             mediaTypes: [tmdbConfigs.mediaType.movie]
           }));
-          
+
           const tvGenres = tvResponse.genres.map(genre => ({
             ...genre,
             name_vi: genreTranslations[genre.name] || genre.name,
             mediaTypes: [tmdbConfigs.mediaType.tv]
           }));
-          
+
           // Gộp các thể loại và xử lý trùng lặp
           const mergedGenres = [...movieGenres];
-          
+
           tvGenres.forEach(tvGenre => {
-            const existingIndex = mergedGenres.findIndex(g => 
-              g.name === tvGenre.name || 
+            const existingIndex = mergedGenres.findIndex(g =>
+              g.name === tvGenre.name ||
               g.name_vi === tvGenre.name_vi
             );
-            
+
             if (existingIndex >= 0) {
               // Thêm mediaType nếu thể loại đã tồn tại
               mergedGenres[existingIndex].mediaTypes.push(...tvGenre.mediaTypes);
@@ -97,10 +97,10 @@ const GenreList = () => {
               mergedGenres.push(tvGenre);
             }
           });
-          
+
           // Sắp xếp theo tên tiếng Việt
           mergedGenres.sort((a, b) => a.name_vi.localeCompare(b.name_vi));
-          
+
           setAllGenres(mergedGenres);
         }
       } catch (error) {
@@ -132,7 +132,7 @@ const GenreList = () => {
       'linear-gradient(135deg, #C2E59C 0%, #64B3F4 100%)',
       'linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%)'
     ];
-    
+
     return gradients[index % gradients.length];
   };
 
@@ -149,164 +149,100 @@ const GenreList = () => {
   };
 
   return (
-    <Box sx={{ ...uiConfigs.style.mainContent, pt: 8 }}>
-      <Container>
-        <Typography 
-          variant="h4" 
-          fontWeight={700} 
-          sx={{ 
-            mb: 5, 
+    <Box sx={{ ...uiConfigs.style.mainContent, pt: { xs: 10, md: 12 } }}>
+      <Container maxWidth="xl">
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          sx={{
+            mb: 3,
             fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
-            textAlign: { xs: 'center', md: 'left' }
+            textAlign: 'center',
+            fontSize: { xs: '1.5rem', md: '2rem' }
           }}
         >
-          Bạn đang muốn xem thể loại gì?
+          Khám phá theo thể loại
         </Typography>
 
-        {/* Genres carousel with navigation buttons */}
-        <Box sx={{ position: 'relative' }}>
-          {/* Left navigation button */}
-          <IconButton
-            onClick={handleScrollLeft}
-            sx={{
-              position: 'absolute',
-              left: -20,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 10,
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              },
-              display: { xs: 'none', md: 'flex' }
-            }}
-          >
-            <ChevronLeftIcon />
-          </IconButton>
-
-          {/* Genres row */}
-          <Box 
-            ref={scrollContainerRef}
-            sx={{ 
-              display: 'flex',
-              flexWrap: 'nowrap',
-              overflowX: 'auto',
-              pb: 2,
-              gap: 3,
-              px: { xs: 0, md: 5 },
-              '&::-webkit-scrollbar': {
-                display: 'none'
-              },
-              msOverflowStyle: 'none',
-              scrollbarWidth: 'none'
-            }}
-          >
-            {allGenres.map((genre, index) => (
-              <Card 
-                key={genre.id}
-                component={Link}
-                to={genre.mediaTypes.length > 1 
-                  ? `/movie?genre=${genre.id}` 
-                  : `/${genre.mediaTypes[0]}?genre=${genre.id}`
+        {/* Genres grid - responsive with no wasted space */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: 'repeat(2, 1fr)',
+              sm: 'repeat(3, 1fr)',
+              md: 'repeat(4, 1fr)',
+              lg: 'repeat(5, 1fr)',
+              xl: 'repeat(6, 1fr)'
+            },
+            gap: { xs: 1.5, sm: 2 }
+          }}
+        >
+          {allGenres.map((genre, index) => (
+            <Card
+              key={genre.id}
+              component={Link}
+              to={genre.mediaTypes.length > 1
+                ? `/movie?genre=${genre.id}`
+                : `/${genre.mediaTypes[0]}?genre=${genre.id}`
+              }
+              sx={{
+                height: { xs: 80, sm: 100, md: 110 },
+                borderRadius: 2,
+                background: getGradientBackground(index),
+                transition: 'all 0.25s ease',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                '&:hover': {
+                  transform: 'scale(1.03)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.25)'
+                },
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'rgba(0,0,0,0.15)',
+                  zIndex: 1
                 }
-                sx={{ 
-                  width: 280,
-                  height: 140,
-                  borderRadius: 4,
-                  flexShrink: 0,
-                  background: getGradientBackground(index),
-                  transition: 'all 0.3s ease',
-                  textDecoration: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  boxShadow: '0 10px 20px rgba(0,0,0,0.1)',
-                  '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: '0 15px 30px rgba(0,0,0,0.2)'
-                  },
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'rgba(0,0,0,0.2)',
-                    zIndex: 1
-                  }
-                }}
-              >
-                <CardActionArea sx={{ height: '100%', width: '100%', zIndex: 2 }}>
-                  <Box 
-                    sx={{ 
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      p: 2
+              }}
+            >
+              <CardActionArea sx={{ height: '100%', width: '100%', zIndex: 2 }}>
+                <Box
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    p: 1.5
+                  }}
+                >
+                  <Typography
+                    variant="subtitle1"
+                    component="div"
+                    color="white"
+                    fontWeight={700}
+                    textAlign="center"
+                    sx={{
+                      textShadow: '0 2px 4px rgba(0,0,0,0.4)',
+                      fontSize: { xs: '0.85rem', sm: '1rem', md: '1.1rem' },
+                      lineHeight: 1.2
                     }}
                   >
-                    <Typography 
-                      variant="h5" 
-                      component="div" 
-                      color="white"
-                      fontWeight={700}
-                      textAlign="center"
-                      sx={{ 
-                        mb: 1,
-                        textShadow: '0 2px 4px rgba(0,0,0,0.3)'
-                      }}
-                    >
-                      {genre.name_vi}
-                    </Typography>
-                    
-                    <Typography 
-                      variant="subtitle2" 
-                      color="white" 
-                      textAlign="center"
-                      sx={{
-                        opacity: 0.9,
-                        fontWeight: 500,
-                        textShadow: '0 1px 2px rgba(0,0,0,0.3)'
-                      }}
-                    >
-                      {genre.mediaTypes.length > 1 
-                        ? 'Phim lẻ & Phim bộ' 
-                        : genre.mediaTypes[0] === tmdbConfigs.mediaType.movie 
-                          ? 'Phim lẻ' 
-                          : 'Phim bộ'
-                      }
-                    </Typography>
-                  </Box>
-                </CardActionArea>
-              </Card>
-            ))}
-          </Box>
-
-          {/* Right navigation button */}
-          <IconButton
-            onClick={handleScrollRight}
-            sx={{
-              position: 'absolute',
-              right: -20,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 10,
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              },
-              display: { xs: 'none', md: 'flex' }
-            }}
-          >
-            <ChevronRightIcon />
-          </IconButton>
+                    {genre.name_vi}
+                  </Typography>
+                </Box>
+              </CardActionArea>
+            </Card>
+          ))}
         </Box>
       </Container>
     </Box>

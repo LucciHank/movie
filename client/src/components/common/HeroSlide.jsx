@@ -85,8 +85,66 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
           disableOnInteraction: false
         }}
         effect="fade"
-        navigation
+        navigation={{
+          prevEl: '.swiper-button-prev',
+          nextEl: '.swiper-button-next'
+        }}
       >
+        {/* Custom Navigation Buttons */}
+        <Box
+          className="swiper-button-prev"
+          sx={{
+            position: 'absolute',
+            left: 0,
+            top: 0,
+            width: '80px',
+            height: '100%',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: 0,
+            transition: 'opacity 0.3s ease',
+            background: 'linear-gradient(to right, rgba(0,0,0,0.5), transparent)',
+            cursor: 'pointer',
+            '&:hover': {
+              opacity: 1
+            },
+            '&::after': {
+              content: '"❮"',
+              fontSize: '2rem',
+              color: 'white',
+              fontWeight: 'bold'
+            }
+          }}
+        />
+        <Box
+          className="swiper-button-next"
+          sx={{
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            width: '80px',
+            height: '100%',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: 0,
+            transition: 'opacity 0.3s ease',
+            background: 'linear-gradient(to left, rgba(0,0,0,0.5), transparent)',
+            cursor: 'pointer',
+            '&:hover': {
+              opacity: 1
+            },
+            '&::after': {
+              content: '"❯"',
+              fontSize: '2rem',
+              color: 'white',
+              fontWeight: 'bold'
+            }
+          }}
+        />
         {movies.map((movie, index) => (
           <SwiperSlide key={index}>
             <Box sx={{
@@ -110,7 +168,7 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
                 left: 0,
                 ...uiConfigs.style.horizontalGradientBgImage[theme.palette.mode]
               }} />
-              
+
               {/* Content */}
               <Container maxWidth="xl" sx={{
                 width: "100%",
@@ -142,27 +200,27 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
                     >
                       {movie.title || movie.name}
                     </Typography>
-                    
+
                     {/* Info */}
                     <Stack direction="row" spacing={2} alignItems="center" justifyContent={{ xs: "center", md: "flex-start" }}>
                       {/* Rating */}
                       <CircularRate value={movie.vote_average} />
-                      
-                      <Divider orientation="vertical" flexItem sx={{ height: 24 }}/>
-                      
+
+                      <Divider orientation="vertical" flexItem sx={{ height: 24 }} />
+
                       {/* Year */}
                       <Typography variant="body1" fontWeight={500}>
                         {(movie.release_date || movie.first_air_date || "").split("-")[0]}
                       </Typography>
-                      
-                      <Divider orientation="vertical" flexItem sx={{ height: 24 }}/>
-                      
+
+                      <Divider orientation="vertical" flexItem sx={{ height: 24 }} />
+
                       {/* Media type */}
                       <Chip
                         variant="outlined"
                         label={mediaType === tmdbConfigs.mediaType.movie ? "Phim lẻ" : "Phim bộ"}
                         size="small"
-                        sx={{ 
+                        sx={{
                           borderColor: "text.primary",
                           color: "text.primary",
                           fontWeight: 500
@@ -181,7 +239,7 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
                             variant="filled"
                             color="primary"
                             label={genre.name}
-                            sx={{ 
+                            sx={{
                               marginBottom: 1,
                               fontWeight: 500,
                               fontSize: "0.85rem"
@@ -192,8 +250,8 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
                     </Stack>
 
                     {/* Overview */}
-                    <Typography 
-                      variant="body1" 
+                    <Typography
+                      variant="body1"
                       sx={{
                         ...uiConfigs.style.typoLines(3, { xs: "center", md: "left" }),
                         fontSize: { xs: "0.9rem", sm: "1rem" },
@@ -205,8 +263,8 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
                     </Typography>
 
                     {/* Buttons */}
-                    <Stack 
-                      direction="row" 
+                    <Stack
+                      direction="row"
                       spacing={2}
                       justifyContent={{ xs: "center", md: "flex-start" }}
                     >
@@ -216,7 +274,7 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
                         startIcon={<PlayArrowIcon />}
                         component={Link}
                         to={routesGen.mediaDetail(mediaType, movie.id)}
-                        sx={{ 
+                        sx={{
                           px: 4,
                           py: 1,
                           fontWeight: 600,
@@ -226,14 +284,14 @@ const HeroSlide = ({ mediaType, mediaCategory }) => {
                       >
                         Xem ngay
                       </Button>
-                      
+
                       <Button
                         variant="outlined"
                         size="large"
                         startIcon={<InfoOutlinedIcon />}
                         component={Link}
                         to={routesGen.mediaDetail(mediaType, movie.id)}
-                        sx={{ 
+                        sx={{
                           px: 3,
                           py: 1,
                           fontWeight: 600,

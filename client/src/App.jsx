@@ -7,6 +7,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
 import routes from "./routes/routes";
 import PageWrapper from "./components/common/PageWrapper";
+import DevToolsBlocker from "./components/common/DevToolsBlocker";
 
 import "react-toastify/dist/ReactToastify.css";
 import "swiper/css";
@@ -18,6 +19,9 @@ const App = () => {
 
   return (
     <ThemeProvider theme={themeConfigs.custom({ mode: themeMode })}>
+      {/* DevTools blocker */}
+      <DevToolsBlocker />
+
       {/* config toastify */}
       <ToastContainer
         position="bottom-left"

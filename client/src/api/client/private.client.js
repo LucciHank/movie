@@ -1,7 +1,7 @@
 import axios from "axios";
 import queryString from "query-string";
 
-const baseURL = "https://moonflix-api.vercel.app/api/v1/";
+const baseURL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api/v1/";
 
 const privateClient = axios.create({
   baseURL,
@@ -24,7 +24,9 @@ privateClient.interceptors.response.use((response) => {
   if (response && response.data) return response.data;
   return response;
 }, (err) => {
-  throw err.response.data;
+  const error = new Error(err?.response?.data?.message || err?.message || "Network error");
+  error.status = err?.response?.status || 500;
+  throw error;
 });
 
 export default privateClient;

@@ -19,6 +19,7 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { LoadingButton } from "@mui/lab";
 import usePrevious from "../hooks/usePrevious";
 import { SwiperSlide } from "swiper/react";
+import ContinueWatching from "../components/common/ContinueWatching";
 
 const HomePage = () => {
   const theme = useTheme();
@@ -29,13 +30,19 @@ const HomePage = () => {
   const [comingSoon, setComingSoon] = useState([]);
   const [genres, setGenres] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("all");
-  
+  const [countryMovies, setCountryMovies] = useState([]);
+  const [collectionImages, setCollectionImages] = useState({
+    marvel: null,
+    korean: null,
+    horror: null
+  });
+
   // Thêm state và ref cho scroll position
   const [topMoviesScrollPosition, setTopMoviesScrollPosition] = useState(0);
   const [topTVShowsScrollPosition, setTopTVShowsScrollPosition] = useState(0);
   const [recentlyUpdatedScrollPosition, setRecentlyUpdatedScrollPosition] = useState(0);
   const [genresScrollPosition, setGenresScrollPosition] = useState(0);
-  
+
   const topMoviesScrollRef = useRef(null);
   const topTVShowsScrollRef = useRef(null);
   const recentlyUpdatedScrollRef = useRef(null);
@@ -130,7 +137,64 @@ const HomePage = () => {
     getRecommended();
     getComingSoon();
     getGenres();
+
+    // Fetch collection backdrop images
+    const getCollectionImages = async () => {
+      try {
+        // Marvel: Avengers Endgame
+        const marvelRes = await mediaApi.getDetail({ mediaType: 'movie', mediaId: 299536 });
+        // Korean: Parasite
+        const koreanRes = await mediaApi.getDetail({ mediaType: 'movie', mediaId: 496243 });
+        // Horror: The Conjuring
+        const horrorRes = await mediaApi.getDetail({ mediaType: 'movie', mediaId: 138843 });
+
+        setCollectionImages({
+          marvel: marvelRes.response?.backdrop_path,
+          korean: koreanRes.response?.backdrop_path,
+          horror: horrorRes.response?.backdrop_path
+        });
+      } catch (e) {
+        console.log('Failed to load collection images');
+      }
+    };
+    getCollectionImages();
   }, []);
+
+  // Fetch movies by country when selection changes
+  useEffect(() => {
+    const getCountryMovies = async () => {
+      // Country to region/language mapping for TMDB
+      const countryConfig = {
+        all: { region: '', language: '' },
+        vietnam: { region: 'VN', language: 'vi' },
+        korea: { region: 'KR', language: 'ko' },
+        us: { region: 'US', language: 'en' },
+        japan: { region: 'JP', language: 'ja' },
+        china: { region: 'CN', language: 'zh' }
+      };
+
+      const config = countryConfig[selectedCountry] || countryConfig.all;
+
+      const { response, err } = await mediaApi.getList({
+        mediaType: tmdbConfigs.mediaType.movie,
+        mediaCategory: tmdbConfigs.mediaCategory.popular,
+        page: 1
+      });
+
+      if (response) {
+        // For non-all, filter by original_language
+        let filtered = response.results;
+        if (selectedCountry !== 'all' && config.language) {
+          const langMap = { vi: 'vi', ko: 'ko', en: 'en', ja: 'ja', zh: 'zh' };
+          filtered = response.results.filter(m => m.original_language === langMap[config.language]);
+        }
+        setCountryMovies(filtered.length > 0 ? filtered : response.results.slice(0, 10));
+      }
+      if (err) toast.error(err.message);
+    };
+
+    getCountryMovies();
+  }, [selectedCountry]);
 
   const handleCountryChange = (event, newValue) => {
     setSelectedCountry(newValue);
@@ -140,20 +204,20 @@ const HomePage = () => {
     const handleScroll = (direction) => {
       const container = genresScrollRef.current;
       if (!container) return;
-      
+
       const scrollAmount = 300; // Khoảng cách scroll mỗi lần nhấn
-      const newPosition = direction === 'left' 
+      const newPosition = direction === 'left'
         ? Math.max(0, genresScrollPosition - scrollAmount)
         : Math.min(container.scrollWidth - container.clientWidth, genresScrollPosition + scrollAmount);
-      
+
       container.scrollTo({
         left: newPosition,
         behavior: 'smooth'
       });
-      
+
       setGenresScrollPosition(newPosition);
     };
-    
+
     // Ánh xạ ID thể loại sang tên tiếng Việt
     const genreNameMapping = {
       28: "Hành Động",
@@ -176,14 +240,14 @@ const HomePage = () => {
       10752: "Chiến Tranh",
       37: "Miền Tây"
     };
-    
+
     return (
       <MuiContainer maxWidth="xl" sx={{ mb: 6, pt: { xs: 6, md: 8 } }}>
-        <Typography 
-          variant="h4" 
-          fontWeight={700} 
-          sx={{ 
-            mb: 4, 
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          sx={{
+            mb: 4,
             fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
             textAlign: { xs: 'center', md: 'left' },
             fontSize: { xs: '1.75rem', md: '2.25rem' }
@@ -194,10 +258,10 @@ const HomePage = () => {
 
         <Box sx={{ position: 'relative' }}>
           {/* Scroll container */}
-          <Box 
+          <Box
             ref={genresScrollRef}
-            sx={{ 
-              position: 'relative', 
+            sx={{
+              position: 'relative',
               overflowX: 'auto',
               pb: 4,
               '&::-webkit-scrollbar': {
@@ -207,10 +271,10 @@ const HomePage = () => {
               scrollbarWidth: 'none'
             }}
           >
-            <Stack 
-              direction="row" 
-              spacing={2} 
-              sx={{ 
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{
                 minWidth: 'max-content',
                 pb: 1
               }}
@@ -266,7 +330,7 @@ const HomePage = () => {
               ))}
             </Stack>
           </Box>
-          
+
           {/* Navigation buttons */}
           <IconButton
             sx={{
@@ -286,7 +350,7 @@ const HomePage = () => {
           >
             <NavigateBeforeIcon fontSize="large" />
           </IconButton>
-          
+
           <IconButton
             sx={{
               position: 'absolute',
@@ -313,27 +377,27 @@ const HomePage = () => {
     const handleScroll = (direction) => {
       const container = topMoviesScrollRef.current;
       if (!container) return;
-      
+
       const scrollAmount = 250; // Khoảng cách scroll mỗi lần nhấn
-      const newPosition = direction === 'left' 
+      const newPosition = direction === 'left'
         ? Math.max(0, topMoviesScrollPosition - scrollAmount)
         : Math.min(container.scrollWidth - container.clientWidth, topMoviesScrollPosition + scrollAmount);
-      
+
       container.scrollTo({
         left: newPosition,
         behavior: 'smooth'
       });
-      
+
       setTopMoviesScrollPosition(newPosition);
     };
-    
+
     return (
       <Box sx={{ mb: 8 }}>
-        <Typography 
-          variant="h4" 
-          fontWeight={700} 
-          sx={{ 
-            mb: 4, 
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          sx={{
+            mb: 4,
             fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
             textAlign: { xs: 'center', md: 'left' },
             fontSize: { xs: '1.75rem', md: '2.25rem' }
@@ -344,10 +408,10 @@ const HomePage = () => {
 
         <Box sx={{ position: 'relative' }}>
           {/* Scroll container */}
-          <Box 
+          <Box
             ref={topMoviesScrollRef}
-            sx={{ 
-              position: 'relative', 
+            sx={{
+              position: 'relative',
               overflowX: 'auto',
               pb: 4,
               '&::-webkit-scrollbar': {
@@ -357,17 +421,17 @@ const HomePage = () => {
               scrollbarWidth: 'none'
             }}
           >
-            <Stack 
-              direction="row" 
-              spacing={2} 
+            <Stack
+              direction="row"
+              spacing={2}
               sx={{ minWidth: 'max-content' }}
             >
               {topMovies.map((movie, index) => (
-                <Box 
-                  key={movie.id} 
+                <Box
+                  key={movie.id}
                   component={Link}
                   to={routesGen.mediaDetail(tmdbConfigs.mediaType.movie, movie.id)}
-                  sx={{ 
+                  sx={{
                     position: 'relative',
                     textDecoration: 'none',
                     transition: 'transform 0.2s',
@@ -377,18 +441,18 @@ const HomePage = () => {
                   }}
                 >
                   <Box sx={{ position: 'relative' }}>
-                    <Box 
+                    <Box
                       component="img"
                       src={tmdbConfigs.posterPath(movie.poster_path)}
                       alt={movie.title}
-                      sx={{ 
+                      sx={{
                         width: { xs: 140, sm: 180, md: 200 },
                         height: 'auto',
                         borderRadius: '12px',
                         boxShadow: '0 5px 15px rgba(0,0,0,0.3)'
                       }}
                     />
-                    
+
                     {/* Rank number */}
                     <Typography
                       variant="h1"
@@ -407,7 +471,7 @@ const HomePage = () => {
                     >
                       {index + 1}
                     </Typography>
-                    
+
                     {/* Rating badge */}
                     <Box
                       sx={{
@@ -427,12 +491,12 @@ const HomePage = () => {
                       </Typography>
                     </Box>
                   </Box>
-                  
+
                   <Box sx={{ mt: 2, px: 1, maxWidth: { xs: 140, sm: 180, md: 200 } }}>
-                    <Typography 
-                      variant="subtitle1" 
-                      sx={{ 
-                        fontWeight: 600, 
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 600,
                         color: 'text.primary',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -441,18 +505,18 @@ const HomePage = () => {
                     >
                       {movie.title}
                     </Typography>
-                    
+
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                         {movie.release_date?.split('-')[0] || 'N/A'}
                       </Typography>
-                      
+
                       <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Chip 
-                          label="Phim lẻ" 
-                          size="small" 
-                          sx={{ 
-                            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', 
+                        <Chip
+                          label="Phim lẻ"
+                          size="small"
+                          sx={{
+                            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
                             fontWeight: 600,
                             fontSize: '0.7rem',
                             height: 24
@@ -465,7 +529,7 @@ const HomePage = () => {
               ))}
             </Stack>
           </Box>
-          
+
           {/* Navigation buttons */}
           <IconButton
             sx={{
@@ -485,7 +549,7 @@ const HomePage = () => {
           >
             <NavigateBeforeIcon fontSize="large" />
           </IconButton>
-          
+
           <IconButton
             sx={{
               position: 'absolute',
@@ -512,27 +576,27 @@ const HomePage = () => {
     const handleScroll = (direction) => {
       const container = topTVShowsScrollRef.current;
       if (!container) return;
-      
+
       const scrollAmount = 250; // Khoảng cách scroll mỗi lần nhấn
-      const newPosition = direction === 'left' 
+      const newPosition = direction === 'left'
         ? Math.max(0, topTVShowsScrollPosition - scrollAmount)
         : Math.min(container.scrollWidth - container.clientWidth, topTVShowsScrollPosition + scrollAmount);
-      
+
       container.scrollTo({
         left: newPosition,
         behavior: 'smooth'
       });
-      
+
       setTopTVShowsScrollPosition(newPosition);
     };
-    
+
     return (
       <Box sx={{ mb: 8 }}>
-        <Typography 
-          variant="h4" 
-          fontWeight={700} 
-          sx={{ 
-            mb: 4, 
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          sx={{
+            mb: 4,
             fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
             textAlign: { xs: 'center', md: 'left' },
             fontSize: { xs: '1.75rem', md: '2.25rem' }
@@ -543,10 +607,10 @@ const HomePage = () => {
 
         <Box sx={{ position: 'relative' }}>
           {/* Scroll container */}
-          <Box 
+          <Box
             ref={topTVShowsScrollRef}
-            sx={{ 
-              position: 'relative', 
+            sx={{
+              position: 'relative',
               overflowX: 'auto',
               pb: 4,
               '&::-webkit-scrollbar': {
@@ -556,17 +620,17 @@ const HomePage = () => {
               scrollbarWidth: 'none'
             }}
           >
-            <Stack 
-              direction="row" 
-              spacing={2} 
+            <Stack
+              direction="row"
+              spacing={2}
               sx={{ minWidth: 'max-content' }}
             >
               {topTVShows.map((show, index) => (
-                <Box 
-                  key={show.id} 
+                <Box
+                  key={show.id}
                   component={Link}
                   to={routesGen.mediaDetail(tmdbConfigs.mediaType.tv, show.id)}
-                  sx={{ 
+                  sx={{
                     position: 'relative',
                     textDecoration: 'none',
                     transition: 'transform 0.2s',
@@ -576,18 +640,18 @@ const HomePage = () => {
                   }}
                 >
                   <Box sx={{ position: 'relative' }}>
-                    <Box 
+                    <Box
                       component="img"
                       src={tmdbConfigs.posterPath(show.poster_path)}
                       alt={show.name}
-                      sx={{ 
+                      sx={{
                         width: { xs: 140, sm: 180, md: 200 },
                         height: 'auto',
                         borderRadius: '12px',
                         boxShadow: '0 5px 15px rgba(0,0,0,0.3)'
                       }}
                     />
-                    
+
                     {/* Rank number */}
                     <Typography
                       variant="h1"
@@ -606,7 +670,7 @@ const HomePage = () => {
                     >
                       {index + 1}
                     </Typography>
-                    
+
                     {/* Rating badge */}
                     <Box
                       sx={{
@@ -626,12 +690,12 @@ const HomePage = () => {
                       </Typography>
                     </Box>
                   </Box>
-                  
+
                   <Box sx={{ mt: 2, px: 1, maxWidth: { xs: 140, sm: 180, md: 200 } }}>
-                    <Typography 
-                      variant="subtitle1" 
-                      sx={{ 
-                        fontWeight: 600, 
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 600,
                         color: 'text.primary',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -640,18 +704,18 @@ const HomePage = () => {
                     >
                       {show.name}
                     </Typography>
-                    
+
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                         {show.first_air_date?.split('-')[0] || 'N/A'}
                       </Typography>
-                      
+
                       <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Chip 
-                          label="Phim bộ" 
-                          size="small" 
-                          sx={{ 
-                            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', 
+                        <Chip
+                          label="Phim bộ"
+                          size="small"
+                          sx={{
+                            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
                             fontWeight: 600,
                             fontSize: '0.7rem',
                             height: 24
@@ -664,7 +728,7 @@ const HomePage = () => {
               ))}
             </Stack>
           </Box>
-          
+
           {/* Navigation buttons */}
           <IconButton
             sx={{
@@ -684,7 +748,7 @@ const HomePage = () => {
           >
             <NavigateBeforeIcon fontSize="large" />
           </IconButton>
-          
+
           <IconButton
             sx={{
               position: 'absolute',
@@ -711,27 +775,27 @@ const HomePage = () => {
     const handleScroll = (direction) => {
       const container = recentlyUpdatedScrollRef.current;
       if (!container) return;
-      
+
       const scrollAmount = 250; // Khoảng cách scroll mỗi lần nhấn
-      const newPosition = direction === 'left' 
+      const newPosition = direction === 'left'
         ? Math.max(0, recentlyUpdatedScrollPosition - scrollAmount)
         : Math.min(container.scrollWidth - container.clientWidth, recentlyUpdatedScrollPosition + scrollAmount);
-      
+
       container.scrollTo({
         left: newPosition,
         behavior: 'smooth'
       });
-      
+
       setRecentlyUpdatedScrollPosition(newPosition);
     };
-    
+
     return (
       <MuiContainer maxWidth="xl" sx={{ mb: 6 }}>
-        <Typography 
-          variant="h4" 
-          fontWeight={700} 
-          sx={{ 
-            mb: 4, 
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          sx={{
+            mb: 4,
             fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
             textAlign: { xs: 'center', md: 'left' },
             fontSize: { xs: '1.75rem', md: '2.25rem' },
@@ -745,10 +809,10 @@ const HomePage = () => {
 
         <Box sx={{ position: 'relative' }}>
           {/* Scroll container */}
-          <Box 
+          <Box
             ref={recentlyUpdatedScrollRef}
-            sx={{ 
-              position: 'relative', 
+            sx={{
+              position: 'relative',
               overflowX: 'auto',
               pb: 4,
               '&::-webkit-scrollbar': {
@@ -758,17 +822,17 @@ const HomePage = () => {
               scrollbarWidth: 'none'
             }}
           >
-            <Stack 
-              direction="row" 
-              spacing={2} 
+            <Stack
+              direction="row"
+              spacing={2}
               sx={{ minWidth: 'max-content' }}
             >
               {recentlyUpdated.map((media, index) => (
-                <Box 
+                <Box
                   key={`${media.id}-${index}`}
                   component={Link}
                   to={routesGen.mediaDetail(media.media_type || tmdbConfigs.mediaType.movie, media.id)}
-                  sx={{ 
+                  sx={{
                     position: 'relative',
                     textDecoration: 'none',
                     transition: 'transform 0.2s',
@@ -778,18 +842,18 @@ const HomePage = () => {
                   }}
                 >
                   <Box sx={{ position: 'relative' }}>
-                    <Box 
+                    <Box
                       component="img"
                       src={tmdbConfigs.posterPath(media.poster_path)}
                       alt={media.title || media.name}
-                      sx={{ 
+                      sx={{
                         width: { xs: 140, sm: 180, md: 200 },
                         height: 'auto',
                         borderRadius: '12px',
                         boxShadow: '0 5px 15px rgba(0,0,0,0.3)'
                       }}
                     />
-                    
+
                     <Box
                       sx={{
                         position: 'absolute',
@@ -800,7 +864,7 @@ const HomePage = () => {
                         gap: 1
                       }}
                     >
-                      <Chip 
+                      <Chip
                         label={media.updateType === "new" ? "Mới" : `Tập ${media.episodeNumber}`}
                         size="small"
                         color={media.updateType === "new" ? "primary" : "secondary"}
@@ -812,12 +876,12 @@ const HomePage = () => {
                       />
                     </Box>
                   </Box>
-                  
+
                   <Box sx={{ mt: 2, px: 1, maxWidth: { xs: 140, sm: 180, md: 200 } }}>
-                    <Typography 
-                      variant="subtitle1" 
-                      sx={{ 
-                        fontWeight: 600, 
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 600,
                         color: 'text.primary',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -826,7 +890,7 @@ const HomePage = () => {
                     >
                       {media.title || media.name}
                     </Typography>
-                    
+
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                         {(media.release_date || media.first_air_date)?.split('-')[0] || 'N/A'}
@@ -843,7 +907,7 @@ const HomePage = () => {
               ))}
             </Stack>
           </Box>
-          
+
           {/* Navigation buttons */}
           <IconButton
             sx={{
@@ -863,7 +927,7 @@ const HomePage = () => {
           >
             <NavigateBeforeIcon fontSize="large" />
           </IconButton>
-          
+
           <IconButton
             sx={{
               position: 'absolute',
@@ -890,27 +954,27 @@ const HomePage = () => {
     const handleScroll = (direction) => {
       const container = recommendedScrollRef.current;
       if (!container) return;
-      
+
       const scrollAmount = 250; // Khoảng cách scroll mỗi lần nhấn
-      const newPosition = direction === 'left' 
+      const newPosition = direction === 'left'
         ? Math.max(0, recommendedScrollPosition - scrollAmount)
         : Math.min(container.scrollWidth - container.clientWidth, recommendedScrollPosition + scrollAmount);
-      
+
       container.scrollTo({
         left: newPosition,
         behavior: 'smooth'
       });
-      
+
       setRecommendedScrollPosition(newPosition);
     };
-    
+
     return (
       <MuiContainer maxWidth="xl" sx={{ mb: 6 }}>
-        <Typography 
-          variant="h4" 
-          fontWeight={700} 
-          sx={{ 
-            mb: 4, 
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          sx={{
+            mb: 4,
             fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
             textAlign: { xs: 'center', md: 'left' },
             fontSize: { xs: '1.75rem', md: '2.25rem' },
@@ -924,10 +988,10 @@ const HomePage = () => {
 
         <Box sx={{ position: 'relative' }}>
           {/* Scroll container */}
-          <Box 
+          <Box
             ref={recommendedScrollRef}
-            sx={{ 
-              position: 'relative', 
+            sx={{
+              position: 'relative',
               overflowX: 'auto',
               pb: 4,
               '&::-webkit-scrollbar': {
@@ -937,17 +1001,17 @@ const HomePage = () => {
               scrollbarWidth: 'none'
             }}
           >
-            <Stack 
-              direction="row" 
-              spacing={2} 
+            <Stack
+              direction="row"
+              spacing={2}
               sx={{ minWidth: 'max-content' }}
             >
               {recommended.map((media) => (
-                <Box 
-                  key={media.id} 
+                <Box
+                  key={media.id}
                   component={Link}
                   to={routesGen.mediaDetail(tmdbConfigs.mediaType.movie, media.id)}
-                  sx={{ 
+                  sx={{
                     position: 'relative',
                     textDecoration: 'none',
                     transition: 'transform 0.2s',
@@ -956,23 +1020,23 @@ const HomePage = () => {
                     }
                   }}
                 >
-                  <Box 
+                  <Box
                     component="img"
                     src={tmdbConfigs.posterPath(media.poster_path)}
                     alt={media.title}
-                    sx={{ 
+                    sx={{
                       width: { xs: 140, sm: 180, md: 200 },
                       height: 'auto',
                       borderRadius: '12px',
                       boxShadow: '0 5px 15px rgba(0,0,0,0.3)'
                     }}
                   />
-                  
+
                   <Box sx={{ mt: 2, px: 1, maxWidth: { xs: 140, sm: 180, md: 200 } }}>
-                    <Typography 
-                      variant="subtitle1" 
-                      sx={{ 
-                        fontWeight: 600, 
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: 600,
                         color: 'text.primary',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -981,12 +1045,12 @@ const HomePage = () => {
                     >
                       {media.title}
                     </Typography>
-                    
+
                     <Stack direction="row" spacing={1} alignItems="center">
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                         {media.release_date?.split('-')[0] || 'N/A'}
                       </Typography>
-                      
+
                       <Stack direction="row" spacing={0.5} alignItems="center">
                         <StarIcon sx={{ color: '#FFD700', fontSize: '0.9rem' }} />
                         <Typography variant="caption" fontWeight={500}>
@@ -999,7 +1063,7 @@ const HomePage = () => {
               ))}
             </Stack>
           </Box>
-          
+
           {/* Navigation buttons */}
           <IconButton
             sx={{
@@ -1019,7 +1083,7 @@ const HomePage = () => {
           >
             <NavigateBeforeIcon fontSize="large" />
           </IconButton>
-          
+
           <IconButton
             sx={{
               position: 'absolute',
@@ -1043,13 +1107,13 @@ const HomePage = () => {
   };
 
   const renderComingSoonSection = () => {
-  return (
+    return (
       <MuiContainer maxWidth="xl" sx={{ mb: 6 }}>
-        <Typography 
-          variant="h4" 
-          fontWeight={700} 
-          sx={{ 
-            mb: 4, 
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          sx={{
+            mb: 4,
             fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
             textAlign: { xs: 'center', md: 'left' },
             fontSize: { xs: '1.75rem', md: '2.25rem' },
@@ -1067,11 +1131,11 @@ const HomePage = () => {
             const releaseDate = new Date(movie.release_date);
             const today = new Date();
             const daysLeft = Math.ceil((releaseDate - today) / (1000 * 60 * 60 * 24));
-            
+
             return (
               <Grid item xs={12} sm={6} md={4} lg={4} key={movie.id}>
-                <Card 
-                  sx={{ 
+                <Card
+                  sx={{
                     display: 'flex',
                     borderRadius: '12px',
                     overflow: 'hidden',
@@ -1094,15 +1158,15 @@ const HomePage = () => {
                         Ra mắt: {new Date(movie.release_date).toLocaleDateString('vi-VN')}
                       </Typography>
                       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Chip 
-                          label={`${daysLeft} ngày nữa`} 
-                          color="primary" 
+                        <Chip
+                          label={`${daysLeft} ngày nữa`}
+                          color="primary"
                           size="small"
                           sx={{ fontWeight: 600 }}
                         />
                       </Box>
-                      <Typography 
-                        variant="body2" 
+                      <Typography
+                        variant="body2"
                         sx={{
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -1115,8 +1179,8 @@ const HomePage = () => {
                       </Typography>
                     </CardContent>
                     <Box sx={{ display: 'flex', alignItems: 'center', px: 2, pb: 2 }}>
-                      <Button 
-                        variant="outlined" 
+                      <Button
+                        variant="outlined"
                         startIcon={<PlayArrowIcon />}
                         size="small"
                         sx={{ borderRadius: '12px', textTransform: 'none' }}
@@ -1145,11 +1209,11 @@ const HomePage = () => {
   const renderCountrySection = () => {
     return (
       <MuiContainer maxWidth="xl" sx={{ mb: 6 }}>
-        <Typography 
-          variant="h4" 
-          fontWeight={700} 
-          sx={{ 
-            mb: 3, 
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          sx={{
+            mb: 3,
             fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
             textAlign: { xs: 'center', md: 'left' },
             fontSize: { xs: '1.75rem', md: '2.25rem' }
@@ -1181,9 +1245,56 @@ const HomePage = () => {
           <Tab value="china" label="Trung Quốc" />
         </Tabs>
 
-        <Container header="">
-          <MediaSlide mediaType={tmdbConfigs.mediaType.movie} mediaCategory={tmdbConfigs.mediaCategory.popular} />
-        </Container>
+        {/* Country movies carousel */}
+        <Box sx={{
+          display: 'flex',
+          overflowX: 'auto',
+          gap: 2,
+          pb: 2,
+          '&::-webkit-scrollbar': { height: 6 },
+          '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.2)', borderRadius: 3 }
+        }}>
+          {countryMovies.length > 0 ? countryMovies.slice(0, 10).map((movie) => (
+            <Box
+              key={movie.id}
+              component={Link}
+              to={routesGen.mediaDetail('movie', movie.id)}
+              sx={{
+                minWidth: 180,
+                textDecoration: 'none',
+                transition: 'transform 0.2s',
+                '&:hover': { transform: 'scale(1.03)' }
+              }}
+            >
+              <Box
+                component="img"
+                src={tmdbConfigs.posterPath(movie.poster_path)}
+                alt={movie.title}
+                sx={{
+                  width: 180,
+                  borderRadius: 2,
+                  boxShadow: '0 5px 15px rgba(0,0,0,0.3)'
+                }}
+              />
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  mt: 1,
+                  fontWeight: 600,
+                  color: 'text.primary',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  maxWidth: 180
+                }}
+              >
+                {movie.title}
+              </Typography>
+            </Box>
+          )) : (
+            <Typography color="text.secondary">Đang tải...</Typography>
+          )}
+        </Box>
       </MuiContainer>
     );
   };
@@ -1191,11 +1302,11 @@ const HomePage = () => {
   const renderCollectionsSection = () => {
     return (
       <MuiContainer maxWidth="xl" sx={{ mb: 6 }}>
-        <Typography 
-          variant="h4" 
-          fontWeight={700} 
-          sx={{ 
-            mb: 4, 
+        <Typography
+          variant="h4"
+          fontWeight={700}
+          sx={{
+            mb: 4,
             fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
             textAlign: { xs: 'center', md: 'left' },
             fontSize: { xs: '1.75rem', md: '2.25rem' }
@@ -1207,10 +1318,10 @@ const HomePage = () => {
         <Grid container spacing={3}>
           {/* Marvel Universe */}
           <Grid item xs={12} sm={6} md={4}>
-            <Card 
+            <Card
               component={Link}
-              to="/movie?keywords=marvel"
-              sx={{ 
+              to="/search?q=avengers"
+              sx={{
                 position: 'relative',
                 height: { xs: 180, md: 240 },
                 borderRadius: '24px',
@@ -1232,14 +1343,14 @@ const HomePage = () => {
             >
               <CardMedia
                 component="img"
-                image="https://terrigen-cdn-dev.marvel.com/content/prod/1x/avengersendgame_lob_crd_05.jpg"
+                image={collectionImages.marvel ? tmdbConfigs.backdropPath(collectionImages.marvel) : 'https://image.tmdb.org/t/p/original/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg'}
                 alt="Marvel Universe"
-                sx={{ 
+                sx={{
                   height: '100%',
                   transition: 'transform 0.6s ease'
                 }}
               />
-              <Box 
+              <Box
                 className="overlay"
                 sx={{
                   position: 'absolute',
@@ -1259,11 +1370,11 @@ const HomePage = () => {
                 p: 3,
                 zIndex: 2
               }}>
-                <Typography 
-                  variant="h5" 
-                  fontWeight={700} 
+                <Typography
+                  variant="h5"
+                  fontWeight={700}
                   color="white"
-                  sx={{ 
+                  sx={{
                     textShadow: '0 2px 4px rgba(0,0,0,0.5)',
                     mb: 1,
                     fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
@@ -1271,10 +1382,10 @@ const HomePage = () => {
                 >
                   Marvel Universe
                 </Typography>
-                <Typography 
-                  variant="body2" 
-                  color="white" 
-                  sx={{ 
+                <Typography
+                  variant="body2"
+                  color="white"
+                  sx={{
                     opacity: 0.9,
                     textShadow: '0 1px 2px rgba(0,0,0,0.6)',
                     fontFamily: '"SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif',
@@ -1285,13 +1396,13 @@ const HomePage = () => {
               </Box>
             </Card>
           </Grid>
-          
+
           {/* Phim Hàn Quốc */}
           <Grid item xs={12} sm={6} md={4}>
-            <Card 
+            <Card
               component={Link}
-              to="/movie?keywords=korean"
-              sx={{ 
+              to="/search?q=korean"
+              sx={{
                 position: 'relative',
                 height: { xs: 180, md: 240 },
                 borderRadius: '24px',
@@ -1313,14 +1424,14 @@ const HomePage = () => {
             >
               <CardMedia
                 component="img"
-                image="https://www.hollywoodreporter.com/wp-content/uploads/2021/10/Squid-Game-Still-5-Netflix-Publicity-H-2021.jpg"
+                image={collectionImages.korean ? tmdbConfigs.backdropPath(collectionImages.korean) : 'https://image.tmdb.org/t/p/original/TU9NIjwzjoKPwQHoHshkFcQUCG.jpg'}
                 alt="Phim Hàn Quốc"
-                sx={{ 
+                sx={{
                   height: '100%',
                   transition: 'transform 0.6s ease'
                 }}
               />
-              <Box 
+              <Box
                 className="overlay"
                 sx={{
                   position: 'absolute',
@@ -1340,11 +1451,11 @@ const HomePage = () => {
                 p: 3,
                 zIndex: 2
               }}>
-                <Typography 
-                  variant="h5" 
-                  fontWeight={700} 
+                <Typography
+                  variant="h5"
+                  fontWeight={700}
                   color="white"
-                  sx={{ 
+                  sx={{
                     textShadow: '0 2px 4px rgba(0,0,0,0.5)',
                     mb: 1,
                     fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
@@ -1352,10 +1463,10 @@ const HomePage = () => {
                 >
                   Phim Hàn Quốc
                 </Typography>
-                <Typography 
-                  variant="body2" 
-                  color="white" 
-                  sx={{ 
+                <Typography
+                  variant="body2"
+                  color="white"
+                  sx={{
                     opacity: 0.9,
                     textShadow: '0 1px 2px rgba(0,0,0,0.6)',
                     fontFamily: '"SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif',
@@ -1366,13 +1477,13 @@ const HomePage = () => {
               </Box>
             </Card>
           </Grid>
-          
+
           {/* Phim Kinh Dị */}
           <Grid item xs={12} sm={6} md={4}>
-            <Card 
+            <Card
               component={Link}
-              to="/movie?genre=27"
-              sx={{ 
+              to="/search?q=horror"
+              sx={{
                 position: 'relative',
                 height: { xs: 180, md: 240 },
                 borderRadius: '24px',
@@ -1394,14 +1505,14 @@ const HomePage = () => {
             >
               <CardMedia
                 component="img"
-                image="https://www.joblo.com/wp-content/uploads/2023/05/insidious-the-red-door-poster-1.jpg"
+                image={collectionImages.horror ? tmdbConfigs.backdropPath(collectionImages.horror) : 'https://image.tmdb.org/t/p/original/dLP7T9aVmv8ggp5Gm5xqGfJHefQ.jpg'}
                 alt="Phim Kinh Dị"
-                sx={{ 
+                sx={{
                   height: '100%',
                   transition: 'transform 0.6s ease'
                 }}
               />
-              <Box 
+              <Box
                 className="overlay"
                 sx={{
                   position: 'absolute',
@@ -1421,11 +1532,11 @@ const HomePage = () => {
                 p: 3,
                 zIndex: 2
               }}>
-                <Typography 
-                  variant="h5" 
-                  fontWeight={700} 
+                <Typography
+                  variant="h5"
+                  fontWeight={700}
                   color="white"
-                  sx={{ 
+                  sx={{
                     textShadow: '0 2px 4px rgba(0,0,0,0.5)',
                     mb: 1,
                     fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif',
@@ -1433,10 +1544,10 @@ const HomePage = () => {
                 >
                   Phim Kinh Dị
                 </Typography>
-                <Typography 
-                  variant="body2" 
-                  color="white" 
-                  sx={{ 
+                <Typography
+                  variant="body2"
+                  color="white"
+                  sx={{
                     opacity: 0.9,
                     textShadow: '0 1px 2px rgba(0,0,0,0.6)',
                     fontFamily: '"SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif',
@@ -1455,37 +1566,40 @@ const HomePage = () => {
   return (
     <Box sx={{ ...uiConfigs.style.mainContent }}>
       {/* Hero Slide */}
-      <HeroSlide 
-        mediaType={tmdbConfigs.mediaType.movie} 
+      <HeroSlide
+        mediaType={tmdbConfigs.mediaType.movie}
         mediaCategory={tmdbConfigs.mediaCategory.popular}
       />
-      
+
       <Container>
+        {/* Tiếp tục xem */}
+        <ContinueWatching />
+
         {/* Thể loại phim */}
         {renderGenresSection()}
-        
+
         {/* Top 10 phim lẻ hôm nay */}
         {renderTopMoviesSection()}
-        
+
         {/* Top 10 phim bộ hôm nay */}
         {renderTopTVShowsSection()}
-        
+
         {/* Mới cập nhật hôm nay */}
         {renderRecentlyUpdatedSection()}
-        
+
         {/* Đề xuất cho bạn */}
         {renderRecommendedSection()}
-        
+
         {/* Lịch chiếu sắp tới */}
         {renderComingSoonSection()}
-        
+
         {/* Phim theo quốc gia */}
         {renderCountrySection()}
-        
+
         {/* Bộ sưu tập theo chủ đề */}
         {renderCollectionsSection()}
-        </Container>
-      </Box>
+      </Container>
+    </Box>
   );
 };
 

@@ -31,6 +31,12 @@ const tmdbApi = {
   ),
   personMedias: async ({ personId }) => await axiosClient.get(
     tmdbEndpoints.personMedias({ personId })
+  ),
+  personPopular: async ({ page }) => await axiosClient.get(
+    tmdbEndpoints.personPopular({ page })
+  ),
+  personSearch: async ({ query, page }) => await axiosClient.get(
+    tmdbEndpoints.personSearch({ query, page })
   )
 };
 

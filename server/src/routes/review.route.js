@@ -6,6 +6,12 @@ import requestHandler from "../handlers/request.handler.js";
 
 const router = express.Router({ mergeParams: true });
 
+// Public route - get reviews for a media (anyone can view)
+router.get(
+  "/media/:mediaId",
+  reviewController.getReviewsByMedia
+);
+
 router.get(
   "/",
   tokenMiddleware.auth,
