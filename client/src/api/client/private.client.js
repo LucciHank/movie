@@ -27,6 +27,7 @@ privateClient.interceptors.response.use((response) => {
   if (response && response.data) return response.data;
   return response;
 }, (err) => {
+  console.error("API Error:", err.response?.data || err.message); // Log full error details
   const error = new Error(err?.response?.data?.message || err?.message || "Network error");
   error.status = err?.response?.status || 500;
   throw error;
