@@ -76,7 +76,7 @@ const WelcomePopup = () => {
         />
         <DialogContent sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="h5" fontWeight="bold" gutterBottom color="primary">
-            Chào mừng đến với TomFlix!npm run start
+            Chào mừng đến với TomFlix!
           </Typography>
           <Typography variant="body1" sx={{ fontStyle: 'italic', color: 'text.secondary', lineHeight: 1.6 }}>
             "Định mở web phim cho anh chị em cày dịp tết nhưng Hoàng Anh sợ bị bớ nên khả lăngggg là chỉ mở 1-2 hôm nghịch nghịch thôi =))) chúc cả nhà xem phim vui vẻ =))) web này hầu như phim rạp hay phim gì mới ra cũng có hết nhé!!!"
