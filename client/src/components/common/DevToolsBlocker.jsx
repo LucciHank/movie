@@ -5,16 +5,21 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 const DevToolsBlocker = () => {
     const [showWarning, setShowWarning] = useState(false);
 
-    // Skip blocking in development mode (localhost)
+    // Skip blocking in development mode (localhost) or on mobile devices
     const isDevelopment = typeof window !== 'undefined' && (
         window.location.hostname === 'localhost' ||
         window.location.hostname === '127.0.0.1' ||
         window.location.hostname.includes('192.168.')
     );
 
+    const isMobile = typeof window !== 'undefined' && (
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        window.innerWidth <= 1024 // Tablet and below
+    );
+
     useEffect(() => {
-        // Don't block in development
-        if (isDevelopment) return;
+        // Don't block in development or on mobile
+        if (isDevelopment || isMobile) return;
 
         let devtoolsOpen = false;
         const threshold = 160;

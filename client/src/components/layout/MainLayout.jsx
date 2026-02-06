@@ -124,7 +124,12 @@ const MainLayout = () => {
 
   // Security features: Block F12, Right Click, etc.
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') return;
+    const isMobile = typeof window !== 'undefined' && (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+      window.innerWidth <= 1024
+    );
+
+    if (process.env.NODE_ENV === 'development' || isMobile) return;
 
     const handleContextMenu = (e) => {
       e.preventDefault();
