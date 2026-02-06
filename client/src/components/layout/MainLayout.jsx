@@ -79,7 +79,7 @@ const WelcomePopup = () => {
             Chào mừng đến với TomFlix!npm run start
           </Typography>
           <Typography variant="body1" sx={{ fontStyle: 'italic', color: 'text.secondary', lineHeight: 1.6 }}>
-            "Định mở web phim cho anh chị em cày dịp tết nhưng Hoàng Anh sợ ăn cơm nhà nước nên khả lăngggg là chỉ mở 1-2 hôm nghịch nghịch thôi =))) chúc cả nhà xem phim vui vẻ =))) web này hầu như phim nào cũng có hết nhé!!!"
+            "Định mở web phim cho anh chị em cày dịp tết nhưng Hoàng Anh sợ bị bớ nên khả lăngggg là chỉ mở 1-2 hôm nghịch nghịch thôi =))) chúc cả nhà xem phim vui vẻ =))) web này hầu như phim rạp hay phim gì mới ra cũng có hết nhé!!!"
           </Typography>
         </DialogContent>
       </Box>
