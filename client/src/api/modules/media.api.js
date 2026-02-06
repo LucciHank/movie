@@ -26,6 +26,15 @@ const mediaApi = {
       return { response };
     } catch (err) { return { err }; }
   },
+  discover: async ({ mediaType, ...params }) => {
+    try {
+      const queryString = new URLSearchParams(params).toString();
+      const response = await publicClient.get(
+        `${mediaType}/discover?${queryString}`
+      );
+      return { response };
+    } catch (err) { return { err }; }
+  },
   search: async ({ mediaType, query, page }) => {
     try {
       const response = await publicClient.get(

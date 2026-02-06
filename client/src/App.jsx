@@ -14,11 +14,14 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
+import { Analytics } from "@vercel/analytics/react";
+
 const App = () => {
   const { themeMode } = useSelector((state) => state.themeMode);
 
   return (
     <ThemeProvider theme={themeConfigs.custom({ mode: themeMode })}>
+      <Analytics />
       {/* DevTools blocker */}
       <DevToolsBlocker />
 

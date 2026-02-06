@@ -2,7 +2,7 @@ import { LoadingButton } from "@mui/lab";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import tmdbConfigs from "../api/configs/tmdb.configs";
 import mediaApi from "../api/modules/media.api";
 import uiConfigs from "../configs/ui.configs";
@@ -20,6 +20,9 @@ const MediaList = () => {
   const [mediaLoading, setMediaLoading] = useState(false);
   const [currCategory, setCurrCategory] = useState(0);
   const [currPage, setCurrPage] = useState(1);
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const genreId = queryParams.get("genre");
 
   const prevMediaType = usePrevious(mediaType);
   const dispatch = useDispatch();
@@ -37,11 +40,44 @@ const MediaList = () => {
       if (currPage === 1) dispatch(setGlobalLoading(true));
       setMediaLoading(true);
 
-      const { response, err } = await mediaApi.getList({
-        mediaType,
-        mediaCategory: mediaCategories[currCategory],
-        page: currPage
-      });
+      setMediaLoading(true);
+
+      let response, err;
+
+      if (genreId) {
+        // Handle custom genres mapping
+        const params = {
+          page: currPage,
+          sort_by: 'popularity.desc'
+        };
+
+        if (genreId === 'bl') {
+          // Expanded keywords for BL: Boy's Love, LGBT, Gay
+          params.with_keywords = '239618|207869|1701|3036|9933';
+        } else if (genreId === 'gl') {
+          // Expanded keywords for GL: Girl's Love, Lesbian, LGBT
+          params.with_keywords = '253272|156903|161226|9933';
+        } else if (genreId === 'vietnam') {
+          params.with_original_language = 'vi';
+        } else {
+          params.with_genres = genreId;
+        }
+
+        const res = await mediaApi.discover({
+          mediaType,
+          ...params
+        });
+        response = res.response;
+        err = res.err;
+      } else {
+        const res = await mediaApi.getList({
+          mediaType,
+          mediaCategory: mediaCategories[currCategory],
+          page: currPage
+        });
+        response = res.response;
+        err = res.err;
+      }
 
       setMediaLoading(false);
       dispatch(setGlobalLoading(false));
@@ -65,7 +101,8 @@ const MediaList = () => {
     prevMediaType,
     currPage,
     mediaCategories,
-    dispatch
+    dispatch,
+    genreId
   ]);
 
   const onCategoryChange = (categoryIndex) => {

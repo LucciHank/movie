@@ -37,6 +37,9 @@ const tmdbEndpoints = {
   personSearch: ({ query, page }) => tmdbConfig.getUrl(
     `search/person`, { query, page }
   ),
+  mediaDiscover: ({ mediaType, ...params }) => tmdbConfig.getUrl(
+    `discover/${mediaType}`, params
+  ),
 };
 
 export default tmdbEndpoints;

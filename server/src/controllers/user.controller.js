@@ -148,7 +148,7 @@ const getInfo = async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, username, display_name, email, phone, address, avatar_url')
+      .select('id, username, display_name, email, phone, address, avatar_url, role')
       .eq('id', req.user.id)
       .single();
 
@@ -163,7 +163,8 @@ const getInfo = async (req, res) => {
       email: user.email || user.username, // fallback to username if no email
       phone: user.phone || '',
       address: user.address || '',
-      profilePicture: user.avatar_url || ''
+      profilePicture: user.avatar_url || '',
+      role: user.role
     });
   } catch {
     responseHandler.error(res);
@@ -211,7 +212,10 @@ const updateProfile = async (req, res) => {
 const getAllUsers = async (req, res) => {
   try {
     // Check if admin
+    // Check if admin
+    console.log("Admin Check - User:", req.user.username, "Role:", req.user.role);
     if (req.user.username !== "admin2004" && req.user.username !== "hoanganhdo181@gmail.com" && req.user.role !== "admin") {
+      console.log("Admin Check Failed");
       return responseHandler.unauthorize(res);
     }
 
@@ -284,6 +288,23 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const debugSchema = async (req, res) => {
+  try {
+    // Attempt to select columns that are supposedly added
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, email, status, role')
+      .limit(1);
+
+    if (error) {
+      return responseHandler.ok(res, { status: "error", error });
+    }
+    return responseHandler.ok(res, { status: "ok", data });
+  } catch (err) {
+    return responseHandler.error(res);
+  }
+};
+
 export default {
   signup,
   signin,
@@ -292,5 +313,6 @@ export default {
   updateProfile,
   getAllUsers,
   updateUserStatus,
-  deleteUser
+  deleteUser,
+  debugSchema
 };

@@ -101,6 +101,26 @@ const GenreList = () => {
           // Sắp xếp theo tên tiếng Việt
           mergedGenres.sort((a, b) => a.name_vi.localeCompare(b.name_vi));
 
+          // Add custom genres
+          mergedGenres.push({
+            id: 'bl',
+            name: 'Boy\'s Love',
+            name_vi: 'Đam Mỹ',
+            mediaTypes: [tmdbConfigs.mediaType.movie, tmdbConfigs.mediaType.tv]
+          });
+          mergedGenres.push({
+            id: 'gl',
+            name: 'Girl\'s Love',
+            name_vi: 'Lé Biên (Bách Hợp)',
+            mediaTypes: [tmdbConfigs.mediaType.movie, tmdbConfigs.mediaType.tv]
+          });
+          mergedGenres.push({
+            id: 'vietnam',
+            name: 'Vietnam',
+            name_vi: 'Phim Việt Nam',
+            mediaTypes: [tmdbConfigs.mediaType.movie]
+          });
+
           setAllGenres(mergedGenres);
         }
       } catch (error) {

@@ -28,7 +28,7 @@ const auth = async (req, res, next) => {
 
   const { data: user, error } = await supabase
     .from('users')
-    .select('id, username, display_name')
+    .select('id, username, display_name, role')
     .eq('id', tokenDecoded.data)
     .single();
 
@@ -37,10 +37,38 @@ const auth = async (req, res, next) => {
   req.user = {
     id: user.id,
     username: user.username,
-    displayName: user.display_name
+    displayName: user.display_name,
+    role: user.role
   };
 
   next();
 };
 
-export default { auth, tokenDecode };
+const decodeToken = async (req, res, next) => {
+  try {
+    const tokenDecoded = tokenDecode(req);
+
+    if (tokenDecoded) {
+      const { data: user } = await supabase
+        .from('users')
+        .select('id, username, display_name, role')
+        .eq('id', tokenDecoded.data)
+        .single();
+
+      if (user) {
+        req.user = {
+          id: user.id,
+          username: user.username,
+          displayName: user.display_name,
+          role: user.role
+        };
+      }
+    }
+  } catch {
+    // Ignore error for optional decoding
+  }
+
+  next();
+};
+
+export default { auth, tokenDecode, decodeToken };

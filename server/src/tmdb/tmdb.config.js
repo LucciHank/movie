@@ -2,15 +2,21 @@ const baseUrl = process.env.TMDB_BASE_URL;
 const key = process.env.TMDB_KEY;
 
 const getUrl = (endpoint, params) => {
-  // Filter out undefined values
-  const cleanParams = params ? Object.fromEntries(
-    Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)
-  ) : {};
+  const qs = new URLSearchParams();
 
-  const qs = new URLSearchParams(cleanParams);
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        qs.append(key, value);
+      }
+    });
+  }
+
   const queryString = qs.toString();
 
-  return `${baseUrl}${endpoint}?api_key=${key}${queryString ? '&' + queryString : ''}`;
+  const url = `${baseUrl}${endpoint}?api_key=${key}${queryString ? '&' + queryString : ''}`;
+  console.log("Generated TMDB URL:", url); // Debug log
+  return url;
 };
 
 export default { getUrl };

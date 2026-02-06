@@ -163,32 +163,54 @@ const HomePage = () => {
   // Fetch movies by country when selection changes
   useEffect(() => {
     const getCountryMovies = async () => {
-      // Country to region/language mapping for TMDB
+      // Mapping country to params for discover API
       const countryConfig = {
-        all: { region: '', language: '' },
-        vietnam: { region: 'VN', language: 'vi' },
-        korea: { region: 'KR', language: 'ko' },
-        us: { region: 'US', language: 'en' },
-        japan: { region: 'JP', language: 'ja' },
-        china: { region: 'CN', language: 'zh' }
+        all: {
+          mediaCategory: tmdbConfigs.mediaCategory.popular
+        },
+        vietnam: {
+          with_original_language: 'vi'
+        },
+        korea: {
+          with_original_language: 'ko'
+        },
+        us: {
+          with_original_language: 'en',
+          with_origin_country: 'US'
+        },
+        japan: {
+          with_original_language: 'ja'
+        },
+        china: {
+          with_original_language: 'zh'
+        }
       };
 
       const config = countryConfig[selectedCountry] || countryConfig.all;
+      let response, err;
 
-      const { response, err } = await mediaApi.getList({
-        mediaType: tmdbConfigs.mediaType.movie,
-        mediaCategory: tmdbConfigs.mediaCategory.popular,
-        page: 1
-      });
+      if (selectedCountry === 'all') {
+        // Use existing popular list for "all"
+        const res = await mediaApi.getList({
+          mediaType: tmdbConfigs.mediaType.movie,
+          mediaCategory: tmdbConfigs.mediaCategory.popular,
+          page: 1
+        });
+        response = res.response;
+        err = res.err;
+      } else {
+        // Use discover API for specific countries
+        const res = await mediaApi.discover({
+          mediaType: tmdbConfigs.mediaType.movie,
+          ...config,
+          page: 1
+        });
+        response = res.response;
+        err = res.err;
+      }
 
       if (response) {
-        // For non-all, filter by original_language
-        let filtered = response.results;
-        if (selectedCountry !== 'all' && config.language) {
-          const langMap = { vi: 'vi', ko: 'ko', en: 'en', ja: 'ja', zh: 'zh' };
-          filtered = response.results.filter(m => m.original_language === langMap[config.language]);
-        }
-        setCountryMovies(filtered.length > 0 ? filtered : response.results.slice(0, 10));
+        setCountryMovies(response.results);
       }
       if (err) toast.error(err.message);
     };

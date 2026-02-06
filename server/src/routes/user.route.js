@@ -132,4 +132,6 @@ router.delete(
   userController.deleteUser
 );
 
+router.get("/debug/schema", userController.debugSchema);
+
 export default router;

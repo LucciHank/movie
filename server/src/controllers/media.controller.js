@@ -17,6 +17,20 @@ const getList = async (req, res) => {
   }
 };
 
+const discover = async (req, res) => {
+  try {
+    const { mediaType } = req.params;
+    const params = req.query;
+
+    const response = await tmdbApi.mediaDiscover({ mediaType, ...params });
+
+    return responseHandler.ok(res, response);
+  } catch (e) {
+    console.error("discover error detail:", e);
+    responseHandler.error(res);
+  }
+};
+
 const getGenres = async (req, res) => {
   try {
     const { mediaType } = req.params;
@@ -113,4 +127,4 @@ const getDetail = async (req, res) => {
   }
 };
 
-export default { getList, getGenres, search, getDetail };
+export default { getList, getGenres, search, getDetail, discover };
