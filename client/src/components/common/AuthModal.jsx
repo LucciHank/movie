@@ -29,12 +29,11 @@ const AuthModal = () => {
 
   // Chọn ngẫu nhiên một trong các hình ảnh phim
   const backgroundImages = [
-    "https://image.tmdb.org/t/p/original/rzdPqYx7Um4FUZeD8wpXqjAYcT4.jpg",
-    "https://image.tmdb.org/t/p/original/iJQIbOPm3bSkXW3IRdvt4tJBUQZ.jpg",
-    "https://image.tmdb.org/t/p/original/628Dep6AxEtDxjZoGP78TsOxYbK.jpg",
-    "https://image.tmdb.org/t/p/original/3bhkrj58Vtu7enYsRolD1fZdja1.jpg"
+    "https://image.tmdb.org/t/p/original/7RyHsO4yDXtBv1zUU3mTpHeQ0d5.jpg",
+    "https://image.tmdb.org/t/p/original/TU9NIjwzjoKPwQHoHshkFcQUCG.jpg",
+    "https://image.tmdb.org/t/p/original/dLP7T9aVmv8ggp5Gm5xqGfJHefQ.jpg"
   ];
-  
+
   const randomImage = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
 
   return (
@@ -71,10 +70,10 @@ const AuthModal = () => {
               backgroundImage: `linear-gradient(to right, rgba(0,0,0,0.3), ${theme.palette.background.paper})`
             }
           }}>
-            <Box sx={{ 
-              position: "absolute", 
-              bottom: "50px", 
-              left: "40px", 
+            <Box sx={{
+              position: "absolute",
+              bottom: "50px",
+              left: "40px",
               zIndex: 1,
               pr: 5
             }}>
@@ -86,47 +85,47 @@ const AuthModal = () => {
               </Typography>
             </Box>
           </Grid>
-          
+
           {/* Phần form */}
-          <Grid item xs={12} md={6} sx={{ 
-            backgroundColor: "background.paper", 
-            position: "relative" 
+          <Grid item xs={12} md={6} sx={{
+            backgroundColor: "background.paper",
+            position: "relative"
           }}>
-            <IconButton 
+            <IconButton
               onClick={handleClose}
-              sx={{ 
-                position: "absolute", 
-                right: "16px", 
+              sx={{
+                position: "absolute",
+                right: "16px",
                 top: "16px",
                 color: "text.secondary"
               }}
             >
               <CloseIcon />
             </IconButton>
-            
-            <Box sx={{ 
-              padding: { xs: 3, md: 5 }, 
-              display: "flex", 
-              flexDirection: "column", 
+
+            <Box sx={{
+              padding: { xs: 3, md: 5 },
+              display: "flex",
+              flexDirection: "column",
               minHeight: { md: "550px" }
             }}>
               <Box sx={{ textAlign: "center", mb: 4 }}>
                 <Logo />
               </Box>
-              
+
               <Box sx={{ flexGrow: 1 }}>
                 {action === actionState.signin && (
                   <>
-                    <Typography 
-                      variant="h5" 
-                      fontWeight="600" 
+                    <Typography
+                      variant="h5"
+                      fontWeight="600"
                       sx={{ mb: 1, textAlign: "center" }}
                     >
                       Đăng nhập
                     </Typography>
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
                       sx={{ mb: 4, textAlign: "center" }}
                     >
                       Đăng nhập để truy cập tài khoản của bạn
@@ -137,16 +136,16 @@ const AuthModal = () => {
 
                 {action === actionState.signup && (
                   <>
-                    <Typography 
-                      variant="h5" 
-                      fontWeight="600" 
+                    <Typography
+                      variant="h5"
+                      fontWeight="600"
                       sx={{ mb: 1, textAlign: "center" }}
                     >
                       Đăng ký
                     </Typography>
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary" 
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
                       sx={{ mb: 4, textAlign: "center" }}
                     >
                       Tạo tài khoản mới để khám phá ngay

@@ -21,6 +21,10 @@ const port = process.env.PORT || 5000;
 
 const server = http.createServer(app);
 
-server.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
-});
+if (process.env.VITE_VERCEL_ENV !== "production" && process.env.NODE_ENV !== "production") {
+  server.listen(port, () => {
+    console.log(`Server is listening on port ${port}`);
+  });
+}
+
+export default app;

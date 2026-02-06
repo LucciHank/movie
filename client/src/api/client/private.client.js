@@ -1,7 +1,10 @@
 import axios from "axios";
 import queryString from "query-string";
 
-const baseURL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000/api/v1/";
+let baseURL = "http://localhost:5000/api/v1/";
+if (process.env.NODE_ENV === "production") {
+  baseURL = "/api/v1/";
+}
 
 const privateClient = axios.create({
   baseURL,
