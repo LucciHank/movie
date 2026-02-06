@@ -158,11 +158,6 @@ const MediaDetail = () => {
   };
 
   const onWatchClick = () => {
-    if (!user) {
-      dispatch(setAuthModalOpen(true));
-      return;
-    }
-
     if (mediaType === tmdbConfigs.mediaType.tv) {
       navigate(`/${mediaType}/${mediaId}/watch?season=${selectedSeason}&episode=${selectedEpisode}`);
     } else {
