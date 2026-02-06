@@ -5,7 +5,7 @@ const error = (res, err) => {
   return responseWithData(res, 500, {
     status: 500,
     message: "Oops! Something worng!",
-    error: process.env.VITE_VERCEL_ENV !== "production" ? err : undefined
+    error: err // expose error for debugging
   });
 };
 

@@ -22,8 +22,8 @@ const track = async (req, res) => {
         }
 
         responseHandler.ok(res);
-    } catch {
-        responseHandler.error(res);
+    } catch (e) {
+        responseHandler.error(res, e);
     }
 };
 
@@ -87,7 +87,7 @@ const getStats = async (req, res) => {
         });
     } catch (err) {
         console.error("Get stats error:", err);
-        responseHandler.error(res);
+        responseHandler.error(res, err);
     }
 };
 
