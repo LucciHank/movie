@@ -123,48 +123,40 @@ const MainLayout = () => {
   }, [user, dispatch]);
 
   // Security features: Block F12, Right Click, etc.
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') return;
+  // useEffect(() => {
+  //   if (process.env.NODE_ENV === 'development') return;
 
-    const handleContextMenu = (e) => {
-      e.preventDefault();
-    };
+  //   const handleContextMenu = (e) => {
+  //     e.preventDefault();
+  //   };
 
-    const handleKeyDown = (e) => {
-      // F12
-      if (e.keyCode === 123) {
-        e.preventDefault();
-      }
-      // Ctrl+Shift+I
-      if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-        e.preventDefault();
-      }
-      // Ctrl+Shift+J
-      if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-        e.preventDefault();
-      }
-      // Ctrl+U
-      if (e.ctrlKey && e.keyCode === 85) {
-        e.preventDefault();
-      }
-    };
+  //   const handleKeyDown = (e) => {
+  //     // F12
+  //     if (e.keyCode === 123) {
+  //       e.preventDefault();
+  //     }
+  //     // Ctrl+Shift+I
+  //     if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+  //       e.preventDefault();
+  //     }
+  //     // Ctrl+Shift+J
+  //     if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+  //       e.preventDefault();
+  //     }
+  //     // Ctrl+U
+  //     if (e.ctrlKey && e.keyCode === 85) {
+  //       e.preventDefault();
+  //     }
+  //   };
 
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
+  //   document.addEventListener('contextmenu', handleContextMenu);
+  //   document.addEventListener('keydown', handleKeyDown);
 
-    // Clear console periodically
-    const interval = setInterval(() => {
-      console.clear();
-      console.log("%cStop!", "color: red; font-size: 50px; font-weight: bold; text-shadow: 2px 2px 0px black;");
-      console.log("%cThis is a browser feature intended for developers. If someone told you to copy-paste something here to enable a feature or hack someone's account, it is a scam.", "font-size: 20px;");
-    }, 1000);
-
-    return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
-      clearInterval(interval);
-    };
-  }, []);
+  //   return () => {
+  //     document.removeEventListener('contextmenu', handleContextMenu);
+  //     document.removeEventListener('keydown', handleKeyDown);
+  //   };
+  // }, []);
 
   return (
     <>
