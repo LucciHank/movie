@@ -23,7 +23,7 @@ const App = () => {
     <ThemeProvider theme={themeConfigs.custom({ mode: themeMode })}>
       <Analytics />
       {/* DevTools blocker */}
-      <DevToolsBlocker />
+      {/* <DevToolsBlocker /> */}
 
       {/* config toastify */}
       <ToastContainer

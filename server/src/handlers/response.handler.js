@@ -1,9 +1,13 @@
 const responseWithData = (res, statusCode, data) => res.status(statusCode).json(data);
 
-const error = (res) => responseWithData(res, 500, {
-  status: 500,
-  message: "Oops! Something worng!"
-});
+const error = (res, err) => {
+  console.error("Server Error:", err);
+  return responseWithData(res, 500, {
+    status: 500,
+    message: "Oops! Something worng!",
+    error: process.env.VITE_VERCEL_ENV !== "production" ? err : undefined
+  });
+};
 
 const badrequest = (res, message) => responseWithData(res, 400, {
   status: 400,
