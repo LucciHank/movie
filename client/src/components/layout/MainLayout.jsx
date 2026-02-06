@@ -123,40 +123,40 @@ const MainLayout = () => {
   }, [user, dispatch]);
 
   // Security features: Block F12, Right Click, etc.
-  // useEffect(() => {
-  //   if (process.env.NODE_ENV === 'development') return;
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') return;
 
-  //   const handleContextMenu = (e) => {
-  //     e.preventDefault();
-  //   };
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+    };
 
-  //   const handleKeyDown = (e) => {
-  //     // F12
-  //     if (e.keyCode === 123) {
-  //       e.preventDefault();
-  //     }
-  //     // Ctrl+Shift+I
-  //     if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
-  //       e.preventDefault();
-  //     }
-  //     // Ctrl+Shift+J
-  //     if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
-  //       e.preventDefault();
-  //     }
-  //     // Ctrl+U
-  //     if (e.ctrlKey && e.keyCode === 85) {
-  //       e.preventDefault();
-  //     }
-  //   };
+    const handleKeyDown = (e) => {
+      // F12
+      if (e.keyCode === 123) {
+        e.preventDefault();
+      }
+      // Ctrl+Shift+I
+      if (e.ctrlKey && e.shiftKey && e.keyCode === 73) {
+        e.preventDefault();
+      }
+      // Ctrl+Shift+J
+      if (e.ctrlKey && e.shiftKey && e.keyCode === 74) {
+        e.preventDefault();
+      }
+      // Ctrl+U
+      if (e.ctrlKey && e.keyCode === 85) {
+        e.preventDefault();
+      }
+    };
 
-  //   document.addEventListener('contextmenu', handleContextMenu);
-  //   document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
 
-  //   return () => {
-  //     document.removeEventListener('contextmenu', handleContextMenu);
-  //     document.removeEventListener('keydown', handleKeyDown);
-  //   };
-  // }, []);
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <>

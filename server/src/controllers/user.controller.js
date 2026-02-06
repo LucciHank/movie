@@ -64,7 +64,7 @@ const signup = async (req, res) => {
     });
   } catch (err) {
     console.error("Signup error:", err);
-    responseHandler.error(res, err);
+    responseHandler.error(res);
   }
 };
 
@@ -102,7 +102,7 @@ const signin = async (req, res) => {
     });
   } catch (err) {
     console.error("Signin error:", err);
-    responseHandler.error(res, err);
+    responseHandler.error(res);
   }
 };
 
@@ -139,8 +139,8 @@ const updatePassword = async (req, res) => {
     }
 
     responseHandler.ok(res);
-  } catch (e) {
-    responseHandler.error(res, e);
+  } catch {
+    responseHandler.error(res);
   }
 };
 
@@ -166,8 +166,8 @@ const getInfo = async (req, res) => {
       profilePicture: user.avatar_url || '',
       role: user.role
     });
-  } catch (e) {
-    responseHandler.error(res, e);
+  } catch {
+    responseHandler.error(res);
   }
 };
 
@@ -205,7 +205,7 @@ const updateProfile = async (req, res) => {
     });
   } catch (err) {
     console.error("Update profile error:", err);
-    responseHandler.error(res, err);
+    responseHandler.error(res);
   }
 };
 
@@ -230,8 +230,8 @@ const getAllUsers = async (req, res) => {
     }
 
     responseHandler.ok(res, users);
-  } catch (e) {
-    responseHandler.error(res, e);
+  } catch {
+    responseHandler.error(res);
   }
 };
 
@@ -258,8 +258,8 @@ const updateUserStatus = async (req, res) => {
     }
 
     responseHandler.ok(res, user);
-  } catch (e) {
-    responseHandler.error(res, e);
+  } catch {
+    responseHandler.error(res);
   }
 };
 
@@ -283,8 +283,8 @@ const deleteUser = async (req, res) => {
     }
 
     responseHandler.ok(res, { id: userId });
-  } catch (e) {
-    responseHandler.error(res, e);
+  } catch {
+    responseHandler.error(res);
   }
 };
 
@@ -301,7 +301,7 @@ const debugSchema = async (req, res) => {
     }
     return responseHandler.ok(res, { status: "ok", data });
   } catch (err) {
-    return responseHandler.error(res, err);
+    return responseHandler.error(res);
   }
 };
 

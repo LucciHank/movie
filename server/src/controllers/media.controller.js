@@ -13,7 +13,7 @@ const getList = async (req, res) => {
     return responseHandler.ok(res, response);
   } catch (e) {
     console.log("getList error:", e.message);
-    responseHandler.error(res, e);
+    responseHandler.error(res);
   }
 };
 
@@ -27,7 +27,7 @@ const discover = async (req, res) => {
     return responseHandler.ok(res, response);
   } catch (e) {
     console.error("discover error detail:", e);
-    responseHandler.error(res, e);
+    responseHandler.error(res);
   }
 };
 
@@ -38,8 +38,8 @@ const getGenres = async (req, res) => {
     const response = await tmdbApi.mediaGenres({ mediaType });
 
     return responseHandler.ok(res, response);
-  } catch (e) {
-    responseHandler.error(res, e);
+  } catch {
+    responseHandler.error(res);
   }
 };
 
@@ -55,8 +55,8 @@ const search = async (req, res) => {
     });
 
     responseHandler.ok(res, response);
-  } catch (e) {
-    responseHandler.error(res, e);
+  } catch {
+    responseHandler.error(res);
   }
 };
 
@@ -123,7 +123,7 @@ const getDetail = async (req, res) => {
     responseHandler.ok(res, media);
   } catch (e) {
     console.log("getDetail error:", e.message);
-    responseHandler.error(res, e);
+    responseHandler.error(res);
   }
 };
 

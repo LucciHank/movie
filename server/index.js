@@ -16,22 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.get("/api/v1/health", (req, res) => {
-  const envStatus = {
-    tmdbBaseUrl: !!process.env.TMDB_BASE_URL,
-    tmdbKey: !!process.env.TMDB_KEY,
-    supabaseUrl: !!process.env.SUPABASE_URL,
-    supabaseKey: !!process.env.SUPABASE_ANON_KEY,
-    port: process.env.PORT || 'not set',
-    nodeEnv: process.env.NODE_ENV,
-    vercelEnv: process.env.VITE_VERCEL_ENV
-  };
-
-  console.log("Health Check - Env Status:", envStatus);
-
-  res.status(200).json({
-    status: "ok",
-    env: envStatus
-  });
+  res.status(200).json({ status: "ok" });
 });
 
 app.use("/api/v1", routes);

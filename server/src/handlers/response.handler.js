@@ -1,13 +1,9 @@
 const responseWithData = (res, statusCode, data) => res.status(statusCode).json(data);
 
-const error = (res, err) => {
-  console.error("Server Error:", err);
-  return responseWithData(res, 500, {
-    status: 500,
-    message: "Oops! Something worng!",
-    error: err // expose error for debugging
-  });
-};
+const error = (res) => responseWithData(res, 500, {
+  status: 500,
+  message: "Oops! Something worng!"
+});
 
 const badrequest = (res, message) => responseWithData(res, 400, {
   status: 400,
