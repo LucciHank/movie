@@ -17,7 +17,7 @@ const WelcomePopup = () => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const hasSeenPopup = localStorage.getItem("hasSeenWelcomePopup");
+    const hasSeenPopup = localStorage.getItem("hasSeenWelcomePopup_v2");
     if (!hasSeenPopup) {
       // Delay popup slightly for better UX
       const timer = setTimeout(() => {
@@ -29,7 +29,7 @@ const WelcomePopup = () => {
 
   const handleClose = () => {
     setOpen(false);
-    localStorage.setItem("hasSeenWelcomePopup", "true");
+    localStorage.setItem("hasSeenWelcomePopup_v2", "true");
   };
 
   return (

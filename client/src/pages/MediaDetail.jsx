@@ -220,7 +220,7 @@ const MediaDetail = () => {
         {/* Hero section with backdrop */}
         <Box sx={{
           position: "relative",
-          height: { xs: "70vh", md: "80vh", lg: "90vh" },
+          height: { xs: "50vh", sm: "70vh", md: "80vh", lg: "90vh" },
           width: "100%",
           overflow: "hidden"
         }}>
@@ -254,15 +254,15 @@ const MediaDetail = () => {
             paddingBottom: { xs: "2rem", md: "4rem" }
           }}>
             <Grid container spacing={4} alignItems="flex-end">
-              {/* Poster */}
-              <Grid item xs={12} sm={5} md={4} lg={3}>
+              {/* Poster - Hidden on mobile for cleaner layout */}
+              <Grid item xs={12} sm={5} md={4} lg={3} sx={{ display: { xs: 'none', sm: 'block' } }}>
                 <Box sx={{
                   borderRadius: 3,
                   overflow: "hidden",
                   boxShadow: "0 5px 30px rgba(0,0,0,0.3)",
                   position: "relative",
                   transformOrigin: "bottom",
-                  transform: { xs: "translateY(30%)", sm: "translateY(25%)" }
+                  transform: "translateY(25%)"
                 }}>
                   <Box
                     component="img"
@@ -280,7 +280,7 @@ const MediaDetail = () => {
 
               {/* Movie info */}
               <Grid item xs={12} sm={7} md={8} lg={9}>
-                <Stack spacing={2}>
+                <Stack spacing={{ xs: 1, sm: 2 }} sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
                   {/* Title */}
                   <Typography
                     variant="h2"
@@ -296,7 +296,7 @@ const MediaDetail = () => {
                   </Typography>
 
                   {/* Year, runtime, rating */}
-                  <Stack direction="row" spacing={2} alignItems="center">
+                  <Stack direction="row" spacing={{ xs: 1, sm: 2 }} alignItems="center" justifyContent={{ xs: 'center', sm: 'flex-start' }} flexWrap="wrap">
                     <Chip
                       label={mediaType === tmdbConfigs.mediaType.movie ? "Phim lẻ" : "Phim bộ"}
                       size="small"
@@ -354,7 +354,7 @@ const MediaDetail = () => {
                   </Stack>
 
                   {/* Genres */}
-                  <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1 }}>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" justifyContent={{ xs: 'center', sm: 'flex-start' }} sx={{ mt: 1 }}>
                     {media.genres.map((genre, index) => (
                       <Chip
                         key={index}
@@ -405,10 +405,10 @@ const MediaDetail = () => {
                 {media.overview}
               </Typography>
 
-              {/* Buttons */}
-              <Stack direction="row" spacing={2} sx={{ mb: 5 }}>
+              {/* Buttons - Stacked on mobile */}
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 5 }}>
                 {hasMultipleSeasons || isSquidGame ? (
-                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: { xs: 'stretch', sm: 'center' }, width: { xs: '100%', sm: 'auto' } }}>
                     <Button
                       variant="contained"
                       size="large"
@@ -525,11 +525,13 @@ const MediaDetail = () => {
                   size="large"
                   startIcon={isFavorite ? <FavoriteIcon color="primary" /> : <FavoriteBorderOutlinedIcon />}
                   onClick={onFavoriteClick}
+                  fullWidth={false}
                   sx={{
                     px: 3,
                     py: 1.2,
                     fontWeight: 500,
-                    borderRadius: 2
+                    borderRadius: 2,
+                    width: { xs: '100%', sm: 'auto' }
                   }}
                 >
                   {isFavorite ? "Đã thích" : "Yêu thích"}
@@ -543,7 +545,8 @@ const MediaDetail = () => {
                     px: 3,
                     py: 1.2,
                     fontWeight: 500,
-                    borderRadius: 2
+                    borderRadius: 2,
+                    width: { xs: '100%', sm: 'auto' }
                   }}
                 >
                   Chia sẻ
