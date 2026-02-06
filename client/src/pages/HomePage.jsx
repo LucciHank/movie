@@ -59,7 +59,7 @@ const HomePage = () => {
         page: 1
       });
 
-      if (response) setTopMovies(response.results.slice(0, 10));
+      if (response && response.results) setTopMovies(response.results.slice(0, 10));
       if (err) toast.error(err.message);
     };
 
@@ -70,7 +70,7 @@ const HomePage = () => {
         page: 1
       });
 
-      if (response) setTopTVShows(response.results.slice(0, 10));
+      if (response && response.results) setTopTVShows(response.results.slice(0, 10));
       if (err) toast.error(err.message);
     };
 
@@ -82,7 +82,7 @@ const HomePage = () => {
         page: 1
       });
 
-      if (response) {
+      if (response && response.results) {
         const updatedMedia = response.results.slice(0, 20).map(item => ({
           ...item,
           updateType: Math.random() > 0.5 ? "new" : "updated",
@@ -101,7 +101,7 @@ const HomePage = () => {
         page: 1
       });
 
-      if (response) setRecommended(response.results.slice(0, 10));
+      if (response && response.results) setRecommended(response.results.slice(0, 10));
       if (err) toast.error(err.message);
     };
 
@@ -112,7 +112,7 @@ const HomePage = () => {
         page: 1
       });
 
-      if (response) {
+      if (response && response.results) {
         const comingSoonMovies = response.results.slice(0, 6).map(item => ({
           ...item,
           release_date: item.release_date || "2023-12-25"
@@ -127,7 +127,7 @@ const HomePage = () => {
         mediaType: tmdbConfigs.mediaType.movie
       });
 
-      if (response) setGenres(response.genres.slice(0, 10));
+      if (response && response.genres) setGenres(response.genres.slice(0, 10));
       if (err) toast.error(err.message);
     };
 
@@ -209,7 +209,7 @@ const HomePage = () => {
         err = res.err;
       }
 
-      if (response) {
+      if (response && response.results) {
         setCountryMovies(response.results);
       }
       if (err) toast.error(err.message);
