@@ -7,13 +7,11 @@ import MediaSearch from "../pages/MediaSearch";
 import PasswordUpdate from "../pages/PasswordUpdate";
 import ReviewList from "../pages/ReviewList";
 import MediaWatch from "../pages/MediaWatch";
-import TestWatch from "../pages/TestWatch";
 import ActorsList from "../pages/ActorsList";
 import GenreList from "../pages/GenreList";
 import AdminDashboard from "../pages/AdminDashboard";
 import UserProfile from "../pages/UserProfile";
 import ProtectedPage from "../components/common/ProtectedPage";
-import PublicPage from "../components/common/PublicPage";
 
 export const routesGen = {
   home: "/",
@@ -109,10 +107,6 @@ const routes = [
     state: "reviews"
   },
   {
-    path: "/test-watch",
-    element: <TestWatch />
-  },
-  {
     path: "/:mediaType",
     element: <MediaList />
   },
@@ -122,11 +116,7 @@ const routes = [
   },
   {
     path: "/:mediaType/:mediaId/watch",
-    element: (
-      <PublicPage>
-        <MediaWatch />
-      </PublicPage>
-    )
+    element: <MediaWatch />
   }
 ];
 

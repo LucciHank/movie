@@ -396,24 +396,6 @@ const MediaWatch = () => {
           <Typography variant="body1" color="text.secondary">
             {media?.overview}
           </Typography>
-
-          {/* Debug info in development */}
-          {process.env.NODE_ENV === 'development' && (
-            <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
-              <Typography variant="caption" display="block">
-                🔧 Debug Info:
-              </Typography>
-              <Typography variant="caption" display="block">
-                Media ID: {mediaId} | Type: {mediaType}
-              </Typography>
-              <Typography variant="caption" display="block">
-                Media loaded: {media ? '✅' : '❌'} | Sources: {sources.length}
-              </Typography>
-              <Typography variant="caption" display="block">
-                Selected source: {selectedSource?.id || 'None'}
-              </Typography>
-            </Box>
-          )}
         </Stack>
       </Box>
 
