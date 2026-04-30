@@ -19,7 +19,7 @@ const mediaApi = {
   },
   getDetail: async ({ mediaType, mediaId }) => {
     try {
-      const response = await privateClient.get(
+      const response = await publicClient.get(
         mediaEndpoints.detail({ mediaType, mediaId })
       );
 

@@ -91,8 +91,14 @@ const MediaWatch = () => {
       dispatch(setGlobalLoading(false));
 
       if (mediaErr) {
-        toast.error(mediaErr.message || "Không thể tải nội dung phim");
-        return;
+        console.error("Media loading error:", mediaErr);
+        toast.error(mediaErr.message || "Không thể tải thông tin phim. Vui lòng thử lại sau.");
+        // Don't return early - still try to load sources
+      }
+
+      if (sourceErr) {
+        console.error("Sources loading error:", sourceErr);
+        toast.warning("Không thể tải nguồn phát. Sẽ hiển thị trailer nếu có.");
       }
 
       if (mediaResponse) {
@@ -165,6 +171,11 @@ const MediaWatch = () => {
       }
 
       setSources(allSources);
+      
+      if (allSources.length === 0) {
+        toast.warning("Chưa có nguồn phát cho nội dung này. Vui lòng thử lại sau.");
+      }
+      
       setSelectedSourceId(allSources[0]?.id || null);
     };
 
@@ -219,6 +230,21 @@ const MediaWatch = () => {
   }, [selectedSource]);
 
   const renderPlayer = () => {
+    // Check if no sources available
+    if (!selectedSource && sources.length === 0) {
+      return (
+        <Stack spacing={2} alignItems="center" justifyContent="center" sx={{ color: "#fff", p: 4 }}>
+          <PlayCircleFilledWhiteOutlinedIcon sx={{ fontSize: 64, opacity: 0.5 }} />
+          <Typography variant="h6" textAlign="center">
+            Chưa có nguồn phát cho nội dung này
+          </Typography>
+          <Typography variant="body2" textAlign="center" sx={{ opacity: 0.7 }}>
+            Vui lòng thử lại sau hoặc chọn phim khác
+          </Typography>
+        </Stack>
+      );
+    }
+
     if (selectedSource?.playbackType === "embed") {
       return (
         <iframe
@@ -300,8 +326,8 @@ const MediaWatch = () => {
       <Box sx={{ px: { xs: 2, md: 4 }, mt: 3 }}>
         <Stack spacing={2}>
           <Typography variant="h4" fontWeight={700}>
-            {media?.title || media?.name || "Đang tải..."}
-            {isTvShow && ` - Phần ${currentSeason} Tập ${currentEpisode}`}
+            {media?.title || media?.name || "Đang tải thông tin phim..."}
+            {isTvShow && media && ` - Phần ${currentSeason} Tập ${currentEpisode}`}
           </Typography>
 
           {/* Season/Episode Selector for TV Shows */}
@@ -370,6 +396,24 @@ const MediaWatch = () => {
           <Typography variant="body1" color="text.secondary">
             {media?.overview}
           </Typography>
+
+          {/* Debug info in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="caption" display="block">
+                🔧 Debug Info:
+              </Typography>
+              <Typography variant="caption" display="block">
+                Media ID: {mediaId} | Type: {mediaType}
+              </Typography>
+              <Typography variant="caption" display="block">
+                Media loaded: {media ? '✅' : '❌'} | Sources: {sources.length}
+              </Typography>
+              <Typography variant="caption" display="block">
+                Selected source: {selectedSource?.id || 'None'}
+              </Typography>
+            </Box>
+          )}
         </Stack>
       </Box>
 
